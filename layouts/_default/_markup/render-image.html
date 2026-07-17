@@ -1,0 +1,73 @@
+{{ $alt := .Text | default "" }}
+{{ $title := .Title | default "" }}
+{{ $rawDestination := .Destination | default "" }}
+{{ $cleanDestination := strings.TrimPrefix "/" $rawDestination }}
+{{ $resourcePath := strings.TrimPrefix "uploads/" $cleanDestination }}
+{{ $asset := or (.Page.Resources.GetMatch $cleanDestination) (resources.Get $cleanDestination) (resources.Get (printf "uploads/%s" $resourcePath)) }}
+
+{{ if $asset }}
+  {{ $widths := slice 480 768 1200 }}
+  {{ $srcsetParts := slice }}
+  {{ $webpParts := slice }}
+  {{ range $width := $widths }}
+    {{ if ge $asset.Width $width }}
+      {{ $resized := $asset.Resize (printf "%dx" $width) }}
+      {{ $webp := $asset.Resize (printf "%dx webp q78" $width) }}
+      {{ $srcsetParts = $srcsetParts | append (printf "%s %dw" $resized.RelPermalink $width) }}
+      {{ $webpParts = $webpParts | append (printf "%s %dw" $webp.RelPermalink $width) }}
+    {{ end }}
+  {{ end }}
+  {{ $fallback := $asset }}
+  {{ if gt $asset.Width 1200 }}
+    {{ $fallback = $asset.Resize "1200x" }}
+  {{ end }}
+  {{ $fallbackWebp := $fallback.Process "webp q80" }}
+  <figure class="article-media">
+    <picture>
+      {{ if gt (len $webpParts) 0 }}
+      <source
+        type="image/webp"
+        srcset="{{ delimit $webpParts ", " }}"
+        sizes="(max-width: 768px) 100vw, min(1100px, 92vw)"
+      >
+      {{ else }}
+      <source type="image/webp" srcset="{{ $fallbackWebp.RelPermalink }}">
+      {{ end }}
+      {{ if gt (len $srcsetParts) 0 }}
+      <img
+        src="{{ $fallback.RelPermalink }}"
+        srcset="{{ delimit $srcsetParts ", " }}"
+        sizes="(max-width: 768px) 100vw, min(1100px, 92vw)"
+        width="{{ $fallback.Width }}"
+        height="{{ $fallback.Height }}"
+        alt="{{ $alt }}"
+        loading="lazy"
+        decoding="async"
+        {{ with $title }}title="{{ . }}"{{ end }}
+      >
+      {{ else }}
+      <img
+        src="{{ $fallback.RelPermalink }}"
+        width="{{ $fallback.Width }}"
+        height="{{ $fallback.Height }}"
+        alt="{{ $alt }}"
+        loading="lazy"
+        decoding="async"
+        {{ with $title }}title="{{ . }}"{{ end }}
+      >
+      {{ end }}
+    </picture>
+    {{ with $title }}<figcaption>{{ . }}</figcaption>{{ end }}
+  </figure>
+{{ else }}
+  <figure class="article-media">
+    <img
+      src="{{ $rawDestination | safeURL }}"
+      alt="{{ $alt }}"
+      loading="lazy"
+      decoding="async"
+      {{ with $title }}title="{{ . }}"{{ end }}
+    >
+    {{ with $title }}<figcaption>{{ . }}</figcaption>{{ end }}
+  </figure>
+{{ end }}
