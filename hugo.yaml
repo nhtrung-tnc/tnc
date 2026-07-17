@@ -1,0 +1,34 @@
+baseURL: "https://tnchandicraft.com/"
+title: "TNC Handicraft"
+defaultContentLanguage: "vi"
+defaultContentLanguageInSubdir: true
+enableRobotsTXT: true
+disableKinds:
+  - taxonomy
+  - term
+  - rss
+caches:
+  images:
+    dir: ":cacheDir/images"
+params:
+  xDefaultLanguageURL: "/"
+languages:
+  vi:
+    locale: "vi-VN"
+    label: "Tiếng Việt"
+    weight: 1
+    contentDir: "content/vi"
+  en:
+    locale: "en-US"
+    label: "English"
+    weight: 2
+    contentDir: "content/en"
+  ja:
+    locale: "ja-JP"
+    label: "日本語"
+    weight: 3
+    contentDir: "content/ja"
+markup:
+  goldmark:
+    renderer:
+      unsafe: true

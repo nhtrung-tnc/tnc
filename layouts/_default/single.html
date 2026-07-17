@@ -1,0 +1,21 @@
+{{ define "main" }}
+<main>
+  <article class="article-shell reveal">
+    <p class="eyebrow">{{ hugo.Data.settings.site_name }}</p>
+    <h1>{{ .Title }}</h1>
+    <div class="article-meta">
+      <span>{{ .Date.Format "02 Jan 2006" }}</span>
+      {{ with .Params.author }}<span>{{ . }}</span>{{ end }}
+    </div>
+    {{ with .Params.description }}<p class="article-lead">{{ . }}</p>{{ end }}
+    <div class="article-content">
+      {{ .Content }}
+    </div>
+    {{ with .CurrentSection }}
+    <div class="section-cta">
+      <a class="button button-secondary" href="{{ .RelPermalink }}">{{ i18n "back_to_list" }}</a>
+    </div>
+    {{ end }}
+  </article>
+</main>
+{{ end }}

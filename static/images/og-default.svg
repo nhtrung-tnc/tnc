@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">TNC Handicraft</title>
+  <desc id="desc">Default social sharing image for TNC Handicraft.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#f8efe2" />
+      <stop offset="55%" stop-color="#ead8c1" />
+      <stop offset="100%" stop-color="#d8bb98" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#b76433" />
+      <stop offset="100%" stop-color="#7f3f1f" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <circle cx="1030" cy="110" r="210" fill="#3f5a47" fill-opacity="0.12" />
+  <circle cx="140" cy="560" r="240" fill="#b76433" fill-opacity="0.12" />
+  <rect x="100" y="120" width="120" height="120" rx="36" fill="url(#accent)" />
+  <text x="160" y="198" fill="#fff8f2" font-family="Be Vietnam Pro, Arial, sans-serif" font-size="48" font-weight="700" text-anchor="middle">TNC</text>
+  <text x="100" y="330" fill="#1f130c" font-family="Fraunces, Georgia, serif" font-size="74" font-weight="700">TNC Handicraft</text>
+  <text x="100" y="395" fill="#70564a" font-family="Be Vietnam Pro, Arial, sans-serif" font-size="32">Handcrafted collections for global buyers</text>
+  <text x="100" y="470" fill="#7f3f1f" font-family="Be Vietnam Pro, Arial, sans-serif" font-size="24" letter-spacing="6">VI  EN  JA</text>
+</svg>

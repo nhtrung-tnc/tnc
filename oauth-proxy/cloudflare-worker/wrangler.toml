@@ -1,0 +1,10 @@
+name = "tnc-decap-oauth-proxy"
+main = "src/index.js"
+compatibility_date = "2026-07-17"
+workers_dev = false
+routes = [
+  { pattern = "oauth.tnchandicraft.com", zone_name = "tnchandicraft.com", custom_domain = true }
+]
+
+[vars]
+ALLOWED_ORIGINS = "https://tnchandicraft.com,https://www.tnchandicraft.com"

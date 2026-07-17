@@ -1,0 +1,21 @@
+<header class="site-header reveal">
+  <nav class="nav">
+    <a class="brand" href="{{ hugo.Data.settings.site_url }}/">
+      <span class="brand-mark">TNC</span>
+      <span class="brand-copy">
+        <strong>{{ .Params.nav.brand_title }}</strong>
+        <span>{{ .Params.nav.brand_subtitle }}</span>
+      </span>
+    </a>
+    <div class="nav-links">
+      {{ range .Params.nav.links }}
+      <a href="{{ .target }}">{{ .label }}</a>
+      {{ end }}
+    </div>
+    <div class="lang-switch" aria-label="{{ .Params.nav.language_switch_label }}">
+      {{ range sort hugo.Sites "Language.Weight" }}
+      <a href="{{ .Home.RelPermalink }}" class="{{ if eq .Language.Lang $.Language.Lang }}is-active{{ end }}">{{ upper .Language.Lang }}</a>
+      {{ end }}
+    </div>
+  </nav>
+</header>

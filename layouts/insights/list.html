@@ -1,0 +1,21 @@
+{{ define "main" }}
+<main>
+  <section class="section section-page">
+    <div class="section-heading reveal">
+      <p class="eyebrow">{{ hugo.Data.settings.site_name }}</p>
+      <h1>{{ .Title }}</h1>
+      <p>{{ .Description }}</p>
+    </div>
+    <div class="insight-grid">
+      {{ range .Pages.ByDate.Reverse }}
+      <article class="insight-card reveal">
+        <p class="insight-meta">{{ .Date.Format "02 Jan 2006" }}</p>
+        <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
+        <p>{{ .Params.description }}</p>
+        <a class="insight-link" href="{{ .RelPermalink }}">{{ i18n "read_article" }}</a>
+      </article>
+      {{ end }}
+    </div>
+  </section>
+</main>
+{{ end }}

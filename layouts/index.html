@@ -1,0 +1,128 @@
+{{ define "main" }}
+<main>
+  <section class="hero">
+    <article class="hero-card hero-copy reveal">
+      <p class="eyebrow">{{ .Params.hero.eyebrow }}</p>
+      <h1>{{ .Params.hero.title }}</h1>
+      <p>{{ .Params.hero.body }}</p>
+      <div class="hero-actions">
+        <a class="button button-primary" href="{{ .Params.hero.primary.target }}">{{ .Params.hero.primary.label }}</a>
+        <a class="button button-secondary" href="{{ .Params.hero.secondary.target }}">{{ .Params.hero.secondary.label }}</a>
+      </div>
+    </article>
+
+    <aside class="hero-card hero-visual reveal">
+      <div class="hero-surface">
+        <div>
+          <p class="eyebrow">{{ .Params.hero.visual.eyebrow }}</p>
+          <div class="surface-grid">
+            {{ range .Params.hero.visual.pills }}
+            <div class="surface-pill">
+              <strong>{{ .title }}</strong>
+              <span>{{ .body }}</span>
+            </div>
+            {{ end }}
+          </div>
+        </div>
+        <div class="stat-band">
+          {{ range .Params.hero.visual.stats }}
+          <div class="stat">
+            <strong>{{ .value }}</strong>
+            <span>{{ .label }}</span>
+          </div>
+          {{ end }}
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="section" id="about">
+    <div class="section-heading reveal">
+      <p class="eyebrow">{{ .Params.about.eyebrow }}</p>
+      <h2>{{ .Params.about.title }}</h2>
+      <p>{{ .Params.about.body }}</p>
+    </div>
+  </section>
+
+  <section class="section" id="capabilities">
+    <div class="section-heading reveal">
+      <p class="eyebrow">{{ .Params.capabilities.eyebrow }}</p>
+      <h2>{{ .Params.capabilities.title }}</h2>
+    </div>
+    <div class="capability-grid">
+      {{ range .Params.capabilities.items }}
+      <article class="info-card reveal">
+        <h3>{{ .title }}</h3>
+        <p>{{ .body }}</p>
+      </article>
+      {{ end }}
+    </div>
+  </section>
+
+  <section class="section" id="products">
+    <div class="section-heading reveal">
+      <p class="eyebrow">{{ .Params.products.eyebrow }}</p>
+      <h2>{{ .Params.products.title }}</h2>
+      <p>{{ .Params.products.body }}</p>
+    </div>
+    <div class="product-grid">
+      {{ range .Params.products.items }}
+      <article class="showcase reveal">
+        <h3>{{ .title }}</h3>
+        <p>{{ .body }}</p>
+      </article>
+      {{ end }}
+    </div>
+  </section>
+
+  {{ $posts := first 3 (where site.RegularPages "Section" "insights") }}
+  <section class="section" id="insights">
+    <div class="section-heading reveal">
+      <p class="eyebrow">{{ .Params.insights.eyebrow }}</p>
+      <h2>{{ .Params.insights.title }}</h2>
+      <p>{{ .Params.insights.body }}</p>
+    </div>
+    {{ if gt (len $posts) 0 }}
+    <div class="insight-grid">
+      {{ range $posts }}
+      <article class="insight-card reveal">
+        <p class="insight-meta">{{ .Date.Format "02 Jan 2006" }}</p>
+        <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
+        <p>{{ .Params.description }}</p>
+        <a class="insight-link" href="{{ .RelPermalink }}">{{ $.Params.insights.card_label }}</a>
+      </article>
+      {{ end }}
+    </div>
+    <div class="section-cta reveal">
+      <a class="button button-secondary" href="{{ .Params.insights.cta_target }}">{{ .Params.insights.cta_label }}</a>
+    </div>
+    {{ else }}
+    <article class="empty-card reveal">
+      <p>{{ .Params.insights.empty_message }}</p>
+    </article>
+    {{ end }}
+  </section>
+
+  <section class="section" id="contact">
+    <div class="section-heading reveal">
+      <p class="eyebrow">{{ .Params.contact.eyebrow }}</p>
+      <h2>{{ .Params.contact.title }}</h2>
+    </div>
+    <div class="contact-grid">
+      {{ range .Params.contact.cards }}
+      <article class="contact-card reveal">
+        <h3>{{ .title }}</h3>
+        {{ with .body }}<p>{{ . }}</p>{{ end }}
+        {{ with .list }}
+        <ul>
+          {{ range . }}
+          <li>{{ . }}</li>
+          {{ end }}
+        </ul>
+        {{ end }}
+      </article>
+      {{ end }}
+    </div>
+  </section>
+</main>
+{{ end }}

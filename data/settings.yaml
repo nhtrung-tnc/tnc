@@ -1,0 +1,6 @@
+site_name: "TNC Handicraft"
+site_url: "https://tnchandicraft.com"
+default_image: "/images/og-default.svg"
+company_name: "TNC Handicraft"
+tagline: "Handcrafted collections for global buyers."
+admin_path: "/admin/"

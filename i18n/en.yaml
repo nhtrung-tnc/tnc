@@ -1,0 +1,5 @@
+- id: read_article
+  translation: "Read article"
+
+- id: back_to_list
+  translation: "Back to list"

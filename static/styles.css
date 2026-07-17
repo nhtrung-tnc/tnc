@@ -356,7 +356,8 @@ h1 {
 
 .capability-grid,
 .product-grid,
-.contact-grid {
+.contact-grid,
+.insight-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
@@ -364,17 +365,93 @@ h1 {
 
 .info-card,
 .showcase,
-.contact-card {
+.contact-card,
+.insight-card,
+.empty-card,
+.article-shell {
   padding: 28px;
 }
 
 .info-card p,
 .showcase p,
 .contact-card p,
-.contact-card li {
+.contact-card li,
+.insight-card p,
+.empty-card p,
+.article-content p,
+.article-content li {
   margin: 0;
   color: var(--muted);
   line-height: 1.7;
+}
+
+.insight-card,
+.empty-card,
+.article-shell {
+  background: var(--paper);
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+
+.insight-card {
+  display: grid;
+  gap: 14px;
+}
+
+.insight-meta,
+.article-meta {
+  color: var(--accent-dark);
+  font-size: 0.9rem;
+}
+
+.article-meta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.insight-link {
+  color: var(--accent-dark);
+  font-weight: 600;
+}
+
+.section-cta {
+  margin-top: 22px;
+}
+
+.section-page {
+  padding-top: 42px;
+}
+
+.article-shell {
+  margin: 42px 0 56px;
+}
+
+.article-lead {
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 1.08rem;
+  line-height: 1.8;
+  max-width: 62ch;
+}
+
+.article-content {
+  margin-top: 28px;
+  display: grid;
+  gap: 18px;
+}
+
+.article-content h2,
+.article-content h3 {
+  line-height: 1.1;
+}
+
+.article-content ul,
+.article-content ol {
+  margin: 0;
+  padding-left: 22px;
 }
 
 .showcase {
@@ -436,6 +513,7 @@ h1 {
   .capability-grid,
   .product-grid,
   .contact-grid,
+  .insight-grid,
   .language-grid {
     grid-template-columns: 1fr;
   }

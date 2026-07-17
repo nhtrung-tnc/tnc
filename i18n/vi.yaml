@@ -1,0 +1,5 @@
+- id: read_article
+  translation: "Đọc bài viết"
+
+- id: back_to_list
+  translation: "Quay lại danh sách"

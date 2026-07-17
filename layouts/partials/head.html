@@ -1,0 +1,39 @@
+{{ $settings := hugo.Data.settings }}
+{{ $title := .Title }}
+{{ $description := .Params.description | default $settings.tagline }}
+{{ $image := "" }}
+{{ with $settings.default_image }}{{ $image = . | absURL }}{{ end }}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ $title }}</title>
+<meta name="description" content="{{ $description }}">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="{{ .Permalink }}">
+<link rel="alternate" hreflang="{{ .Language.Lang }}" href="{{ .Permalink }}">
+{{ range .Translations }}
+<link rel="alternate" hreflang="{{ .Language.Lang }}" href="{{ .Permalink }}">
+{{ end }}
+<link rel="alternate" hreflang="x-default" href="{{ $settings.site_url }}/">
+<meta property="og:type" content="{{ if and .IsPage (eq .Section "insights") }}article{{ else }}website{{ end }}">
+<meta property="og:title" content="{{ $title }}">
+<meta property="og:description" content="{{ $description }}">
+<meta property="og:url" content="{{ .Permalink }}">
+{{ with $image }}<meta property="og:image" content="{{ . }}">{{ end }}
+<meta property="og:locale" content="{{ .Language.Locale }}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ $title }}">
+<meta name="twitter:description" content="{{ $description }}">
+{{ with $image }}<meta name="twitter:image" content="{{ . }}">{{ end }}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ "styles.css" | relURL }}">
+{{ $organization := dict "@context" "https://schema.org" "@type" "Organization" "name" $settings.company_name "url" ($settings.site_url | default site.BaseURL) }}
+{{ $website := dict "@context" "https://schema.org" "@type" "WebSite" "name" $settings.site_name "url" ($settings.site_url | default site.BaseURL) "inLanguage" .Language.Locale }}
+<script type="application/ld+json">{{ $organization | jsonify | safeJS }}</script>
+<script type="application/ld+json">{{ $website | jsonify | safeJS }}</script>
+{{ if and .IsPage (eq .Section "insights") }}
+{{ $article := dict "@context" "https://schema.org" "@type" "Article" "headline" .Title "description" $description "datePublished" (.Date.Format "2006-01-02T15:04:05Z07:00") "dateModified" (.Lastmod.Format "2006-01-02T15:04:05Z07:00") "mainEntityOfPage" .Permalink "inLanguage" .Language.Locale "author" (dict "@type" "Person" "name" (.Params.author | default $settings.company_name)) "publisher" (dict "@type" "Organization" "name" $settings.company_name) }}
+{{ if $image }}{{ $article = merge $article (dict "image" (slice $image)) }}{{ end }}
+<script type="application/ld+json">{{ $article | jsonify | safeJS }}</script>
+{{ end }}

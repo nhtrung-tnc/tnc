@@ -1,0 +1,207 @@
+local_backend: true
+
+backend:
+  name: github
+  repo: nhtrung-tnc/tnc
+  branch: main
+  base_url: https://oauth.tnchandicraft.com
+  auth_endpoint: auth
+
+media_folder: "static/uploads"
+public_folder: "/uploads"
+publish_mode: simple
+site_url: https://tnchandicraft.com
+display_url: https://tnchandicraft.com
+logo_url: /images/og-default.svg
+
+collections:
+  - name: "settings"
+    label: "Global Settings"
+    files:
+      - file: "data/settings.yaml"
+        label: "Site Settings"
+        name: "site_settings"
+        fields:
+          - { label: "Site name", name: "site_name", widget: "string" }
+          - { label: "Site URL", name: "site_url", widget: "string" }
+          - { label: "Default social image", name: "default_image", widget: "string" }
+          - { label: "Company name", name: "company_name", widget: "string" }
+          - { label: "Tagline", name: "tagline", widget: "string" }
+          - { label: "Admin path", name: "admin_path", widget: "string" }
+
+  - name: "pages_vi"
+    label: "Homepage (VI)"
+    files:
+      - file: "content/vi/_index.md"
+        label: "Vietnamese homepage"
+        name: "home_vi"
+        fields: &home_fields
+          - { label: "Title", name: "title", widget: "string" }
+          - { label: "Description", name: "description", widget: "text" }
+          - label: "Navigation"
+            name: "nav"
+            widget: "object"
+            fields:
+              - { label: "Brand title", name: "brand_title", widget: "string" }
+              - { label: "Brand subtitle", name: "brand_subtitle", widget: "string" }
+              - { label: "Language switch label", name: "language_switch_label", widget: "string" }
+              - label: "Links"
+                name: "links"
+                widget: "list"
+                fields:
+                  - { label: "Label", name: "label", widget: "string" }
+                  - { label: "Target", name: "target", widget: "string" }
+          - label: "Hero"
+            name: "hero"
+            widget: "object"
+            fields:
+              - { label: "Eyebrow", name: "eyebrow", widget: "string" }
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Body", name: "body", widget: "text" }
+              - label: "Primary button"
+                name: "primary"
+                widget: "object"
+                fields:
+                  - { label: "Label", name: "label", widget: "string" }
+                  - { label: "Target", name: "target", widget: "string" }
+              - label: "Secondary button"
+                name: "secondary"
+                widget: "object"
+                fields:
+                  - { label: "Label", name: "label", widget: "string" }
+                  - { label: "Target", name: "target", widget: "string" }
+              - label: "Visual panel"
+                name: "visual"
+                widget: "object"
+                fields:
+                  - { label: "Eyebrow", name: "eyebrow", widget: "string" }
+                  - label: "Pills"
+                    name: "pills"
+                    widget: "list"
+                    fields:
+                      - { label: "Title", name: "title", widget: "string" }
+                      - { label: "Body", name: "body", widget: "text" }
+                  - label: "Stats"
+                    name: "stats"
+                    widget: "list"
+                    fields:
+                      - { label: "Value", name: "value", widget: "string" }
+                      - { label: "Label", name: "label", widget: "string" }
+          - label: "About"
+            name: "about"
+            widget: "object"
+            fields:
+              - { label: "Eyebrow", name: "eyebrow", widget: "string" }
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Body", name: "body", widget: "text" }
+          - label: "Capabilities"
+            name: "capabilities"
+            widget: "object"
+            fields:
+              - { label: "Eyebrow", name: "eyebrow", widget: "string" }
+              - { label: "Title", name: "title", widget: "string" }
+              - label: "Items"
+                name: "items"
+                widget: "list"
+                fields:
+                  - { label: "Title", name: "title", widget: "string" }
+                  - { label: "Body", name: "body", widget: "text" }
+          - label: "Products"
+            name: "products"
+            widget: "object"
+            fields:
+              - { label: "Eyebrow", name: "eyebrow", widget: "string" }
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Body", name: "body", widget: "text" }
+              - label: "Items"
+                name: "items"
+                widget: "list"
+                fields:
+                  - { label: "Title", name: "title", widget: "string" }
+                  - { label: "Body", name: "body", widget: "text" }
+          - label: "Insights"
+            name: "insights"
+            widget: "object"
+            fields:
+              - { label: "Eyebrow", name: "eyebrow", widget: "string" }
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Body", name: "body", widget: "text" }
+              - { label: "Empty message", name: "empty_message", widget: "string" }
+              - { label: "Card label", name: "card_label", widget: "string" }
+              - { label: "CTA label", name: "cta_label", widget: "string" }
+              - { label: "CTA target", name: "cta_target", widget: "string" }
+          - label: "Contact"
+            name: "contact"
+            widget: "object"
+            fields:
+              - { label: "Eyebrow", name: "eyebrow", widget: "string" }
+              - { label: "Title", name: "title", widget: "string" }
+              - label: "Cards"
+                name: "cards"
+                widget: "list"
+                summary: "{{fields.title}}"
+                fields:
+                  - { label: "Title", name: "title", widget: "string" }
+                  - { label: "Body", name: "body", widget: "text", required: false }
+                  - label: "List items"
+                    name: "list"
+                    widget: "list"
+                    required: false
+                    field: { label: "Item", name: "item", widget: "string" }
+          - label: "Footer"
+            name: "footer"
+            widget: "object"
+            fields:
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Description", name: "description", widget: "text" }
+              - { label: "Note", name: "note", widget: "text" }
+
+  - name: "pages_en"
+    label: "Homepage (EN)"
+    files:
+      - file: "content/en/_index.md"
+        label: "English homepage"
+        name: "home_en"
+        fields: *home_fields
+
+  - name: "pages_ja"
+    label: "Homepage (JA)"
+    files:
+      - file: "content/ja/_index.md"
+        label: "Japanese homepage"
+        name: "home_ja"
+        fields: *home_fields
+
+  - name: "insights_vi"
+    label: "Insights (VI)"
+    folder: "content/vi/insights"
+    create: true
+    slug: "{{slug}}"
+    summary: "{{title}}"
+    filter: { field: "type", value: "insight" }
+    fields: &article_fields
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Description", name: "description", widget: "text" }
+      - { label: "Publish date", name: "date", widget: "datetime" }
+      - { label: "Updated date", name: "lastmod", widget: "datetime", required: false }
+      - { label: "Author", name: "author", widget: "string" }
+      - { label: "Type", name: "type", widget: "hidden", default: "insight" }
+      - { label: "Body", name: "body", widget: "markdown" }
+
+  - name: "insights_en"
+    label: "Insights (EN)"
+    folder: "content/en/insights"
+    create: true
+    slug: "{{slug}}"
+    summary: "{{title}}"
+    filter: { field: "type", value: "insight" }
+    fields: *article_fields
+
+  - name: "insights_ja"
+    label: "Insights (JA)"
+    folder: "content/ja/insights"
+    create: true
+    slug: "{{slug}}"
+    summary: "{{title}}"
+    filter: { field: "type", value: "insight" }
+    fields: *article_fields

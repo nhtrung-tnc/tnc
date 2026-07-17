@@ -1,0 +1,5 @@
+- id: read_article
+  translation: "記事を読む"
+
+- id: back_to_list
+  translation: "一覧へ戻る"
