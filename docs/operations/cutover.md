@@ -1,6 +1,6 @@
 # TNC cutover and rollback checklist
 
-Status: **preparation only; cutover is not authorized**. Test-host production acceptance is blocked as recorded in [deployment evidence](deployment-evidence.md). DNS, GitHub Pages and Hugo/Decap remain active and unchanged.
+Status: **preparation only; cutover is not authorized**. The test Worker is deployed and unauthenticated smoke passes, but authenticated acceptance and full recovery/cache checks remain blocked as recorded in [deployment evidence](deployment-evidence.md). DNS, GitHub Pages and Hugo/Decap remain active and unchanged.
 
 ## Acceptance gate
 

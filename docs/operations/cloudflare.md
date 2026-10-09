@@ -67,11 +67,15 @@ Production resource creation, Access policy changes, migration, deployment, and 
 
 Copy the binding shape from `wrangler.jsonc` into ignored `.wrangler.production.jsonc`, then replace only through Cloudflare's resource selection/output: Worker name, real D1 database ID/name, MEDIA bucket name, Access issuer/audience, canonical origin, zone ID and Cron. Put `CACHE_PURGE_TOKEN` with `wrangler secret put`; never add it to `vars`.
 
+Deploy the actual Astro build output: `main: "dist/server/entry.mjs"`, assets directory `dist/client`, `no_bundle: true`, ESModule rules for `**/*.js` and `**/*.mjs`, and `find_additional_modules: true`. Omitting module rules caused Cloudflare validation error `10021` for missing Astro chunks in the first production upload. Configure `images: { binding: "IMAGES" }` and disable preview URLs unless equivalent Access coverage is verified. Keep all concrete IDs/AUDs in the ignored config.
+
 ```bash
 npm run build
 npm run deploy:production
 npm run smoke:production -- --origin https://protected-test-host.example.workers.dev
 ```
+
+In this managed environment, use `NODE_USE_ENV_PROXY=1 npm run smoke:production -- --origin <test-origin>` so Node fetch uses the configured network proxy. Preserve TLS verification and inherited proxy/CA settings. Never treat a transport error or generic edge denial as proof of private-route Access protection; inspect the redirect target and public-route behavior.
 
 Before deployment, verify the account's current Workers, D1, R2, Images, Cache API and Access limits/pricing in the dashboard. Disable the public `workers.dev` hostname unless it is itself covered by the intended Access application; a private route protected only on the custom domain is insufficient.
 

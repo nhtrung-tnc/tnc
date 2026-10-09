@@ -1,8 +1,8 @@
 # Cloudflare deployment evidence
 
-Status: **Task 15 partially provisioned; production acceptance blocked by account onboarding**.
+Status: **Task 15 test Worker deployed; production acceptance blocked by protected identity/login and purge configuration**.
 
-Rechecked at 2026-10-09 13:24 UTC (20:24 Asia/Saigon), starting from handoff commit `b76cdd0f450eb6282d3fb5fe6873439a44e42d96` on `codex/astro-cloudflare-migration`. Remote branch was fetched and fast-forward checked; existing work was preserved. This evidence supersedes the earlier unauthenticated status.
+Rechecked after account onboarding at 2026-10-09 13:37 UTC (20:37 Asia/Saigon), continuing from `34e16f3` on `codex/astro-cloudflare-migration`. Handoff commit remains `b76cdd0f450eb6282d3fb5fe6873439a44e42d96`; existing work was preserved. This evidence supersedes the earlier unauthenticated and account-onboarding blockers.
 
 ## Verified state
 
@@ -12,24 +12,37 @@ Rechecked at 2026-10-09 13:24 UTC (20:24 Asia/Saigon), starting from handoff com
 - Resource identifiers are selected programmatically into ignored `.operations.d1.jsonc`; no production identifier is committed. This is a D1 operations config, not a deployable production Worker config.
 - `npm ci`, `npm run check` and `npm run verify` exited successfully: 16 unit tests and 87 integration tests passed; browser E2E had six passed and **seven skipped**. The skipped Admin/Editor/publishing tests require Access JWTs and an item fixture. Exit zero with skips is **not production acceptance**.
 - Operations integration tests exercise initial Admin bootstrap, backup pagination over 1,005 synthetic media objects, checksums, retention of four completed sets, failure preservation and restore verification using test adapters. These are not a real production backup or restore rehearsal.
-- Local Astro build and Wrangler deploy dry-run passed. Dry-run used local/test bindings and created no deployment.
+- Local Astro build and Wrangler deploy dry-run passed. The existing build was subsequently deployed using ignored production bindings. The first upload failed validation because additional Astro modules were omitted; adding ESModule rules and `find_additional_modules` resolved it. The successful version is recorded privately in ignored `.operations.deployment.json`.
+
+## Test deployment and recovery evidence
+
+- Test origin: **https://tnc-handicraft.khc-32f.workers.dev**. Production D1, MEDIA, IMAGES and ASSETS bindings and daily Cron were deployed. Preview URLs are disabled in the production config.
+- Created R2 `tnc-media-production` and separate `tnc-backup-production` after successful R2 preflight. Existing production D1 was reused.
+- Access organization preflight succeeded and confirmed `tnchandicraft.cloudflareaccess.com`. Created one application covering the three private destinations with a deny-everyone policy pending explicit identity configuration. No allow policy or Admin/Editor record was inferred from the API token owner.
+- Real production smoke: **8/8 passed** (root redirect, three homepages, sitemap, three private routes). A separate six-path check confirmed both private roots and descendants return redirects to the expected Access team domain. Public missing media returned 404. These unauthenticated checks do not establish authenticated acceptance.
+- The Node smoke command requires `NODE_USE_ENV_PROXY=1` in this managed environment. An initial direct Node fetch failed; proxy-aware smoke passed. Python's default User-Agent also received edge error 1010 on the test origin; a normal browser User-Agent produced the expected public and private responses. Those initial errors are not counted as Access denial evidence.
+- D1 was exported using official Wrangler and stored at `preacceptance/2026-10-09T13-37-44Z/database.sql` in the backup bucket. Reading it back verified identical SHA-256. The export contains 4,840 bytes.
+- A separate D1 `tnc-cms-rehearsal-20261009` was created and the export imported with official Wrangler. Remote source/restored verification matched all nine CMS tables and zero users, content items and revisions. This proves an initial D1-only restore, **not** restoration of published content or a full R2-inventory backup manifest. The rehearsal resource is retained for evidence.
 
 ## Remaining blockers
 
 | API check | Observed result | Required next action |
 | --- | --- | --- |
 | D1 database list/query | Successful | Reuse the existing database; confirm actual plan and Time Travel retention before deployment. |
-| R2 bucket list | HTTP 403, code `10042`: `Please enable R2 through the Cloudflare Dashboard.` | Account owner must complete R2 dashboard activation/billing before bucket creation. |
-| Access organization and applications | HTTP 403, code `9999`: `access.api.error.not_enabled` | Complete Zero Trust/Access dashboard onboarding, including team name, plan and billing. |
-| Images stats | HTTP 403, code `5403`: account not valid or not authorized for the service | Check Images service entitlement/activation and token account scope. This response does not distinguish the causes and does not prove Images binding cannot work. |
+| R2 bucket list | Successful after subscription activation | Resolved; two production buckets created. |
+| Access organization and applications | Successful after Zero Trust Free onboarding | Resolved; team domain confirmed and protected test application created. |
+| Access identity providers | Read succeeds with zero providers; attempted OTP creation returns HTTP 403, code `1010` | Configure a login method in the Zero Trust dashboard, or grant the corresponding Identity Providers Edit permission and retry. The response alone does not prove a unique authorization cause. |
+| Initial Admin/Editor identities | Protected runtime identities absent | Supply `ADMIN_BOOTSTRAP_EMAIL` and `EDITOR_EMAIL` through protected environment configuration; do not send real identities in public chat/evidence. Bootstrap only after identities and Access allow policy are configured. |
+| Dedicated cache-purge credential | `CACHE_PURGE_TOKEN` absent | Supply a protected token scoped to Cache Purge for the intended zone before authenticated publication/cache acceptance. Do not silently reuse the broader deployment token. |
+| Images stats | HTTP 403, code `5403`: account not valid or not authorized for the service | Stats authorization/entitlement remains unresolved, but IMAGES binding deployment succeeded. Do not declare account activation required for transformations without a failing transformation test. Authenticated image variant/fallback acceptance is still pending. |
 
-After onboarding, configure login method and explicit allowed identities, then select issuer, application AUD, test hostname, initial Admin and Editor identities and a scoped cache-purge credential through protected configuration. Never infer the CMS Admin from the token owner's identity. See [Cloudflare operations](cloudflare.md#account-onboarding-and-preflight).
+Issuer, application AUD, zone and test origin have been selected into ignored production configuration without printing production identifiers. Configure login method, explicit allowed identities and scoped purge credential next. Never infer the CMS Admin from the token owner's identity. See [Cloudflare operations](cloudflare.md#account-onboarding-and-preflight).
 
 ## Actions not performed
 
-No R2 media/backup bucket, Access application/policy, hosted Images resource, Worker secret or Worker deployment was created. The only production resource created during this session's earlier phase was D1 `tnc-cms-production`, with its initial migration. No Admin bootstrap or production content import has occurred.
+No hosted Images resource or Worker secret was created. No Admin bootstrap or production content import has occurred. The test application's deny policy will require a deliberate replacement with exact approved identities before authenticated workflows can pass.
 
-**Test URL: not available.** Real Access browser login, Admin/Editor acceptance, image variant/fallback, two-edge warm-cache publication, production backup/restore and compatible rollback rehearsal remain unverified. Workers Builds repository connection and account pricing/limits also remain to be verified.
+Real Access browser login, Admin/Editor acceptance, image variant/fallback, two-edge warm-cache publication, a complete backup/restore with R2 inventory and published snapshots, and compatible Worker rollback rehearsal remain unverified. Workers Builds repository connection and account pricing/limits/Time Travel retention also remain to be verified.
 
 DNS, GitHub Pages, Hugo/Decap and the legacy OAuth Worker are unchanged. Task 16 is gated on complete test-host acceptance and explicit user approval; preparing its [cutover checklist](cutover.md) does not authorize cutover.
 
