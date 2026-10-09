@@ -1,0 +1,34 @@
+{
+  "name": "tnc-handicraft",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "XDG_CONFIG_HOME=/workspace/.tool-config ASTRO_TELEMETRY_DISABLED=1 astro dev",
+    "build": "XDG_CONFIG_HOME=/workspace/.tool-config ASTRO_TELEMETRY_DISABLED=1 astro check && XDG_CONFIG_HOME=/workspace/.tool-config ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "check": "XDG_CONFIG_HOME=/workspace/.tool-config ASTRO_TELEMETRY_DISABLED=1 astro check",
+    "pretest:integration": "XDG_CONFIG_HOME=/workspace/.tool-config ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "test": "npm run test:integration",
+    "test:unit": "vitest run --config vitest.unit.config.ts",
+    "test:integration": "XDG_CONFIG_HOME=/workspace/.tool-config vitest run --config vitest.config.ts",
+    "test:e2e": "playwright test",
+    "db:migrate:local": "XDG_CONFIG_HOME=/workspace/.tool-config wrangler d1 migrations apply DB --local",
+    "worker:dev": "XDG_CONFIG_HOME=/workspace/.tool-config ASTRO_TELEMETRY_DISABLED=1 astro build && XDG_CONFIG_HOME=/workspace/.tool-config wrangler dev --config dist/server/wrangler.json"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "14.3.4",
+    "astro": "7.3.8"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "@cloudflare/vitest-plugin": "1.4.0",
+    "@cloudflare/workers-types": "5.20261009.1",
+    "@playwright/test": "1.64.0",
+    "typescript": "6.0.3",
+    "vitest": "4.1.11",
+    "wrangler": "4.149.0"
+  }
+}

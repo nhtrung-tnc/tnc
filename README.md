@@ -1,5 +1,20 @@
 # TNC Handicraft Website
 
+## Astro migration development
+
+The replacement application is an Astro SSR worker for Cloudflare. During the migration, the existing Hugo site remains in this repository so production can keep serving it until the Cloudflare cutover is verified.
+
+Use Node 24, then install and check the new runtime:
+
+```bash
+npm ci
+npm run check
+npm run test:integration -- tests/integration/runtime.test.ts
+npm run worker:dev
+```
+
+The Astro public directory is `astro-public/`; the legacy `static/` and compiled root HTML are intentionally excluded from the Astro build.
+
 This repository now uses `Hugo + Decap CMS` for a multilingual company profile site on GitHub Pages.
 
 ## Structure

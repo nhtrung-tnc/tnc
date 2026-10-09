@@ -3,3 +3,11 @@
 /.hugo_build.lock
 /.DS_Store
 Thumbs.db
+/node_modules/
+/dist/
+/.astro/
+/.wrangler/
+/.dev.vars
+/playwright-report/
+/test-results/
+/coverage/
