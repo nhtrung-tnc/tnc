@@ -39,3 +39,17 @@ Apply D1 migrations before code that requires them. Never contract in the same r
 - Cron media cleanup is daily. A soft-deleted object is retained for 30 days unless it has become orphaned; pause cleanup during a storage incident.
 
 Production resource creation, Access policy changes, migration, deployment, and DNS cutover require separate deployment evidence and are not performed by CI.
+
+## Production config and smoke
+
+Copy the binding shape from `wrangler.jsonc` into ignored `.wrangler.production.jsonc`, then replace only through Cloudflare's resource selection/output: Worker name, real D1 database ID/name, MEDIA bucket name, Access issuer/audience, canonical origin, zone ID and Cron. Put `CACHE_PURGE_TOKEN` with `wrangler secret put`; never add it to `vars`.
+
+```bash
+npm run build
+npm run deploy:production
+npm run smoke:production -- --origin https://protected-test-host.example.workers.dev
+```
+
+Before deployment, verify the account's current Workers, D1, R2, Images, Cache API and Access limits/pricing in the dashboard. Disable the public `workers.dev` hostname unless it is itself covered by the intended Access application; a private route protected only on the custom domain is insufficient.
+
+The unauthenticated smoke proves public routes and that private roots are not public. Complete Admin and Editor browser tests through the real Access login, then test draft isolation, image variants/fallback and cache purge from at least two edge locations. Record only sanitized evidence.

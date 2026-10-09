@@ -1,4 +1,7 @@
 {
+  // Local/test template only. Production deploys must use the ignored
+  // .wrangler.production.jsonc selected by `npm run deploy:production`.
+  // CACHE_PURGE_TOKEN is always a Worker secret and must never appear here.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "tnc-handicraft",
   "main": "src/worker.ts",
