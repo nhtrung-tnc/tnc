@@ -1,0 +1,9 @@
+---
+import { env } from "cloudflare:workers";
+import SiteLayout from "../layouts/SiteLayout.astro";
+import { buildPageSeo } from "../server/site/seo";
+Astro.response.status = 404;
+Astro.response.headers.set("Cache-Control", "private, no-store");
+const seo = buildPageSeo({ title: "404 | TNC Handicraft", description: "Content not found", path: Astro.url.pathname, locale: "en", origin: env.SITE_ORIGIN, robots: "noindex,nofollow" });
+---
+<SiteLayout locale="en" seo={seo}><main class="error-page"><div><p class="eyebrow">TNC Handicraft</p><h1>404</h1><p>Content not found.</p><a class="button button-secondary" href="/">Home</a></div></main></SiteLayout>

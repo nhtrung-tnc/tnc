@@ -1,0 +1,13 @@
+---
+import SeoHead from "../components/site/SeoHead.astro";
+import type { Locale } from "../server/content/types";
+import type { SeoView } from "../server/site/seo";
+import "../styles/site.css";
+interface Props { locale: Locale; seo: SeoView }
+const { locale, seo } = Astro.props;
+---
+<!doctype html>
+<html lang={locale}>
+  <head><SeoHead seo={seo} /><link rel="icon" href="/images/og-default.svg" /></head>
+  <body><div class="site-shell"><slot /></div><script>import "../client/site";</script></body>
+</html>

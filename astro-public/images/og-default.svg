@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">TNC Handicraft</title>
+  <desc id="desc">TNC Handicraft brand image</desc>
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f6efe4"/><stop offset="1" stop-color="#d7c1a5"/></linearGradient></defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="970" cy="120" r="260" fill="#3f5a47" opacity=".16"/>
+  <circle cx="170" cy="600" r="280" fill="#b76433" opacity=".18"/>
+  <rect x="110" y="130" width="160" height="160" rx="48" fill="#b76433"/>
+  <text x="190" y="230" text-anchor="middle" fill="#fff8f2" font-family="Arial,sans-serif" font-size="58" font-weight="700">TNC</text>
+  <text x="110" y="390" fill="#1f130c" font-family="Georgia,serif" font-size="86" font-weight="700">TNC Handicraft</text>
+  <text x="115" y="465" fill="#70564a" font-family="Arial,sans-serif" font-size="34">Handcrafted collections</text>
+</svg>

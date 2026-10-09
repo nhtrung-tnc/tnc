@@ -1,0 +1,48 @@
+---
+import { env } from "cloudflare:workers";
+import Footer from "../../components/site/Footer.astro";
+import Header from "../../components/site/Header.astro";
+import Homepage from "../../components/site/Homepage.astro";
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import { publicCacheHeaders, privateCacheHeaders } from "../../server/site/cache";
+import { fallbackHomepage, parseLocale } from "../../server/site/fallback";
+import { getPublished, listItemPublications, listPublished } from "../../server/site/queries";
+import { buildPageSeo, buildSeo } from "../../server/site/seo";
+import type { Published } from "../../server/content/types";
+
+const locale = parseLocale(Astro.params.locale);
+let failed = false;
+let homepage: Published | null = null;
+let insights: Published[] = [];
+if (locale) {
+  try {
+    homepage = await getPublished(env.DB, locale, `/${locale}/`);
+    insights = (await listPublished(env.DB, locale)).filter(({ snapshot }) => snapshot.type === "insight");
+  } catch {
+    failed = true;
+  }
+}
+if (!locale) Astro.response.status = 404;
+else if (failed) Astro.response.status = 503;
+const headers = locale && !failed ? publicCacheHeaders() : privateCacheHeaders();
+headers.forEach((value, name) => Astro.response.headers.set(name, value));
+
+const data = locale
+  ? homepage?.snapshot.type === "homepage"
+    ? homepage.snapshot.data
+    : fallbackHomepage(locale)
+  : fallbackHomepage("en");
+const seo = locale && homepage
+  ? buildSeo(homepage, await listItemPublications(env.DB, homepage.itemId), env.SITE_ORIGIN)
+  : buildPageSeo({
+      title: data.seo.title,
+      description: data.seo.description,
+      path: locale ? `/${locale}/` : "/404",
+      locale: locale ?? "en",
+      origin: env.SITE_ORIGIN,
+      robots: locale ? "index,follow" : "noindex,nofollow",
+    });
+---
+<SiteLayout locale={locale ?? "en"} seo={seo}>
+  {locale && !failed ? <><Header data={data} locale={locale} /><Homepage data={data} insights={insights} /><Footer data={data} /></> : <main class="error-page"><h1>{failed ? "Service unavailable" : "404"}</h1></main>}
+</SiteLayout>

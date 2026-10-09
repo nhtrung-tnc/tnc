@@ -1,0 +1,31 @@
+---
+import { env } from "cloudflare:workers";
+import Footer from "../../../components/site/Footer.astro";
+import Header from "../../../components/site/Header.astro";
+import InsightCard from "../../../components/site/InsightCard.astro";
+import SiteLayout from "../../../layouts/SiteLayout.astro";
+import { privateCacheHeaders, publicCacheHeaders } from "../../../server/site/cache";
+import { fallbackHomepage, parseLocale } from "../../../server/site/fallback";
+import { getPublished, listPublished } from "../../../server/site/queries";
+import { buildPageSeo } from "../../../server/site/seo";
+import type { Published } from "../../../server/content/types";
+
+const locale = parseLocale(Astro.params.locale);
+let failed = false;
+let data = fallbackHomepage(locale ?? "en");
+let insights: Published[] = [];
+if (locale) {
+  try {
+    const home = await getPublished(env.DB, locale, `/${locale}/`);
+    if (home?.snapshot.type === "homepage") data = home.snapshot.data;
+    insights = (await listPublished(env.DB, locale)).filter(({ snapshot }) => snapshot.type === "insight");
+  } catch { failed = true; }
+}
+if (!locale) Astro.response.status = 404;
+else if (failed) Astro.response.status = 503;
+(locale && !failed ? publicCacheHeaders() : privateCacheHeaders()).forEach((value, name) => Astro.response.headers.set(name, value));
+const seo = buildPageSeo({ title: `${data.insights.title} | TNC Handicraft`, description: data.insights.body, path: locale ? `/${locale}/insights/` : "/404", locale: locale ?? "en", origin: env.SITE_ORIGIN, robots: locale ? "index,follow" : "noindex,nofollow" });
+---
+<SiteLayout locale={locale ?? "en"} seo={seo}>
+  {locale && !failed ? <><Header data={data} locale={locale} /><main><section class="section section-page"><div class="section-heading reveal"><p class="eyebrow">TNC Handicraft</p><h1>{data.insights.title}</h1><p>{data.insights.body}</p></div>{insights.length ? <div class="insight-grid">{insights.map((insight) => <InsightCard insight={insight} label={data.insights.cardLabel} />)}</div> : <article class="empty-card"><p>{data.insights.emptyMessage}</p></article>}</section></main><Footer data={data} /></> : <main class="error-page"><h1>{failed ? "Service unavailable" : "404"}</h1></main>}
+</SiteLayout>

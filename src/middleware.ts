@@ -3,6 +3,7 @@ import { env } from "cloudflare:workers";
 import { authenticate } from "./server/auth/access";
 import { requireSameOrigin } from "./server/http/csrf";
 import { AppError, errorResponse } from "./server/http/errors";
+import { loadPublicWithCache } from "./server/site/cache";
 
 const PRIVATE_ROOTS = ["/admin", "/api/admin", "/preview"];
 
@@ -10,6 +11,10 @@ function isPrivatePath(pathname: string): boolean {
   return PRIVATE_ROOTS.some(
     (root) => pathname === root || pathname.startsWith(`${root}/`),
   );
+}
+
+function isPublicCachePath(pathname: string): boolean {
+  return /^\/(?:vi|en|ja)(?:\/|$)/.test(pathname) || pathname === "/sitemap.xml";
 }
 
 function setPrivateHeaders(response: Response): void {
@@ -21,7 +26,11 @@ function setPrivateHeaders(response: Response): void {
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
-  if (!isPrivatePath(pathname)) return next();
+  if (!isPrivatePath(pathname)) {
+    return isPublicCachePath(pathname)
+      ? loadPublicWithCache(context.request, env, next)
+      : next();
+  }
 
   const requestId = context.request.headers.get("Cf-Ray") ?? crypto.randomUUID();
   context.locals.requestId = requestId;

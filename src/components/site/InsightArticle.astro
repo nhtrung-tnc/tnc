@@ -1,0 +1,8 @@
+---
+import type { Published } from "../../server/content/types";
+interface Props { insight: Published; html: string; backLabel: string }
+const { insight, html, backLabel } = Astro.props;
+if (insight.snapshot.type !== "insight") throw new Error("InsightArticle requires insight content");
+const data = insight.snapshot.data;
+---
+<main><article class="article-shell reveal"><p class="eyebrow">TNC Handicraft</p><h1>{data.title}</h1><div class="article-meta"><span>{data.displayDate}</span><span>{data.author}</span></div><p class="article-lead">{data.description}</p><div class="article-content" set:html={html} /><div class="section-cta"><a class="button button-secondary" href={`/${insight.locale}/insights/`}>{backLabel}</a></div></article></main>

@@ -1,0 +1,21 @@
+---
+import type { HomepageData, Locale } from "../../server/content/types";
+interface Props { data: HomepageData; locale: Locale }
+const { data, locale } = Astro.props;
+---
+<header class="site-header reveal">
+  <nav class="nav" aria-label={data.nav.brandTitle}>
+    <a class="brand" href={`/${locale}/`}>
+      <span class="brand-mark">TNC</span>
+      <span class="brand-copy"><strong>{data.nav.brandTitle}</strong><span>{data.nav.brandSubtitle}</span></span>
+    </a>
+    <div class="nav-links">
+      {data.nav.links.map((link) => <a href={link.target}>{link.label}</a>)}
+    </div>
+    <div id="languages" class="lang-switch" aria-label={data.nav.languageSwitchLabel}>
+      {(["vi", "en", "ja"] as const).map((entry) => (
+        <a href={`/${entry}/`} class:list={{ "is-active": entry === locale }}>{entry.toUpperCase()}</a>
+      ))}
+    </div>
+  </nav>
+</header>

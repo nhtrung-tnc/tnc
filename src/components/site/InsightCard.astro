@@ -1,0 +1,14 @@
+---
+import type { Published } from "../../server/content/types";
+interface Props { insight: Published; label: string }
+const { insight, label } = Astro.props;
+if (insight.snapshot.type !== "insight") throw new Error("InsightCard requires insight content");
+const data = insight.snapshot.data;
+const href = `/${insight.locale}/insights/${insight.snapshot.slug}/`;
+---
+<article class="insight-card reveal">
+  <p class="insight-meta">{data.displayDate}</p>
+  <h2><a href={href}>{data.title}</a></h2>
+  <p>{data.description}</p>
+  <a class="insight-link" href={href}>{label}</a>
+</article>

@@ -20,6 +20,12 @@ DROP TABLE IF EXISTS users;
 export async function resetDatabase(): Promise<void> {
   await env.DB.exec(dropSql);
   await applyD1Migrations(env.DB, env.TEST_MIGRATIONS ?? []);
+  const publicCache = await caches.open("tnc-public-v1");
+  await Promise.all(
+    ["/vi/", "/en/", "/ja/", "/sitemap.xml"].map((path) =>
+      publicCache.delete(new URL(path, env.SITE_ORIGIN).toString()),
+    ),
+  );
 }
 
 export async function seedActor(actor: {

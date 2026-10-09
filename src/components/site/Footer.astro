@@ -1,0 +1,11 @@
+---
+import type { HomepageData } from "../../server/content/types";
+interface Props { data: HomepageData }
+const { data } = Astro.props;
+---
+<footer class="site-footer reveal">
+  <div class="footer-card">
+    <div><strong>{data.footer.title}</strong><p>{data.footer.description}</p></div>
+    {data.footer.note && <div><p>{data.footer.note}</p></div>}
+  </div>
+</footer>

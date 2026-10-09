@@ -1,0 +1,22 @@
+---
+import type { HomepageData, Published } from "../../server/content/types";
+import InsightCard from "./InsightCard.astro";
+interface Props { data: HomepageData; insights: Published[] }
+const { data, insights } = Astro.props;
+---
+<main>
+  <section class="hero">
+    <article class="hero-card hero-copy reveal">
+      <p class="eyebrow">{data.hero.eyebrow}</p><h1>{data.hero.title}</h1><p>{data.hero.body}</p>
+      <div class="hero-actions"><a class="button button-primary" href={data.hero.primary.target}>{data.hero.primary.label}</a><a class="button button-secondary" href={data.hero.secondary.target}>{data.hero.secondary.label}</a></div>
+    </article>
+    <aside class="hero-card hero-visual reveal">
+      <div class="hero-surface"><div><p class="eyebrow">{data.hero.visual.eyebrow}</p><div class="surface-grid">{data.hero.visual.pills.map((item) => <div class="surface-pill"><strong>{item.title}</strong><span>{item.body}</span></div>)}</div></div><div class="stat-band">{data.hero.visual.stats.map((item) => <div class="stat"><strong>{item.value}</strong><span>{item.label}</span></div>)}</div></div>
+    </aside>
+  </section>
+  <section class="section" id="about"><div class="section-heading reveal"><p class="eyebrow">{data.about.eyebrow}</p><h2>{data.about.title}</h2><p>{data.about.body}</p></div></section>
+  {data.capabilities.items.length > 0 && <section class="section" id="capabilities"><div class="section-heading reveal"><p class="eyebrow">{data.capabilities.eyebrow}</p><h2>{data.capabilities.title}</h2></div><div class="capability-grid">{data.capabilities.items.map((item) => <article class="info-card reveal"><h3>{item.title}</h3><p>{item.body}</p></article>)}</div></section>}
+  {data.products.items.length > 0 && <section class="section" id="products"><div class="section-heading reveal"><p class="eyebrow">{data.products.eyebrow}</p><h2>{data.products.title}</h2><p>{data.products.body}</p></div><div class="product-grid">{data.products.items.map((item) => <article class="showcase reveal"><h3>{item.title}</h3><p>{item.body}</p></article>)}</div></section>}
+  <section class="section" id="insights"><div class="section-heading reveal"><p class="eyebrow">{data.insights.eyebrow}</p><h2>{data.insights.title}</h2><p>{data.insights.body}</p></div>{insights.length ? <><div class="insight-grid">{insights.slice(0, 3).map((insight) => <InsightCard insight={insight} label={data.insights.cardLabel} />)}</div><div class="section-cta"><a class="button button-secondary" href={data.insights.ctaTarget}>{data.insights.ctaLabel}</a></div></> : <article class="empty-card reveal"><p>{data.insights.emptyMessage}</p></article>}</section>
+  {data.contact.cards.length > 0 && <section class="section" id="contact"><div class="section-heading reveal"><p class="eyebrow">{data.contact.eyebrow}</p><h2>{data.contact.title}</h2></div><div class="contact-grid">{data.contact.cards.map((card) => <article class="contact-card reveal"><h3>{card.title}</h3>{card.body && <p>{card.body}</p>}{card.list && <ul>{card.list.map((item) => <li>{item}</li>)}</ul>}</article>)}</div></section>}
+</main>

@@ -1,0 +1,42 @@
+---
+import { env } from "cloudflare:workers";
+import Footer from "../../../components/site/Footer.astro";
+import Header from "../../../components/site/Header.astro";
+import InsightArticle from "../../../components/site/InsightArticle.astro";
+import SiteLayout from "../../../layouts/SiteLayout.astro";
+import { privateCacheHeaders, publicCacheHeaders } from "../../../server/site/cache";
+import { fallbackHomepage, parseLocale } from "../../../server/site/fallback";
+import { getPublished, listItemPublications, resolveRedirect } from "../../../server/site/queries";
+import { renderMarkdown } from "../../../server/site/markdown";
+import { buildPageSeo, buildSeo } from "../../../server/site/seo";
+
+const locale = parseLocale(Astro.params.locale);
+const slug = Astro.params.slug ?? "";
+let failed = false;
+let insight = null;
+let data = fallbackHomepage(locale ?? "en");
+if (locale) {
+  try {
+    const path = `/${locale}/insights/${slug}/`;
+    insight = await getPublished(env.DB, locale, path);
+    if (!insight) {
+      const redirect = await resolveRedirect(env.DB, locale, path);
+      if (redirect) return Astro.redirect(redirect, 301);
+    }
+    const home = await getPublished(env.DB, locale, `/${locale}/`);
+    if (home?.snapshot.type === "homepage") data = home.snapshot.data;
+  } catch { failed = true; }
+}
+if (!locale || (!failed && (!insight || insight.snapshot.type !== "insight"))) Astro.response.status = 404;
+else if (failed) Astro.response.status = 503;
+const success = Boolean(locale && !failed && insight?.snapshot.type === "insight");
+(success ? publicCacheHeaders() : privateCacheHeaders()).forEach((value, name) => Astro.response.headers.set(name, value));
+const html = insight?.snapshot.type === "insight" ? await renderMarkdown(insight.snapshot.data.bodyMarkdown) : "";
+const seo = locale && insight
+  ? buildSeo(insight, await listItemPublications(env.DB, insight.itemId), env.SITE_ORIGIN)
+  : buildPageSeo({ title: "Not found | TNC Handicraft", description: "Content not found", path: Astro.url.pathname, locale: locale ?? "en", origin: env.SITE_ORIGIN, robots: "noindex,nofollow" });
+const backLabel = locale === "vi" ? "Quay lại bài viết" : locale === "ja" ? "記事一覧へ戻る" : "Back to insights";
+---
+<SiteLayout locale={locale ?? "en"} seo={seo}>
+  {success && insight ? <><Header data={data} locale={locale!} /><InsightArticle insight={insight} html={html} backLabel={backLabel} /><Footer data={data} /></> : <main class="error-page"><h1>{failed ? "Service unavailable" : "404"}</h1></main>}
+</SiteLayout>

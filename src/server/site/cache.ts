@@ -98,6 +98,9 @@ export async function loadPublicWithCache(
 
   try {
     const response = await load();
+    if (response.status >= 500 && cached && ageSeconds <= STALE_SECONDS) {
+      return responseForVisitor(cached);
+    }
     if (isPublicCacheable(request, response)) {
       const storedHeaders = new Headers(response.headers);
       storedHeaders.set("Cache-Control", `public, max-age=${STALE_SECONDS}`);

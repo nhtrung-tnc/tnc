@@ -62,6 +62,17 @@ export async function listPublished(
   return rows.results.map(mapPublished);
 }
 
+export async function listItemPublications(
+  db: D1Database,
+  itemId: string,
+): Promise<Published[]> {
+  const rows = await db
+    .prepare(`${publishedSelect} WHERE pr.item_id = ? ORDER BY pr.locale`)
+    .bind(itemId)
+    .all<PublishedRow>();
+  return rows.results.map(mapPublished);
+}
+
 export async function resolveRedirect(
   db: D1Database,
   locale: Locale,
