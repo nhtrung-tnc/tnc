@@ -44,6 +44,20 @@ export async function requireActiveMedia(
   }
 }
 
+export function mediaActiveGuards(
+  db: D1Database,
+  mediaIds: string[],
+): D1PreparedStatement[] {
+  return mediaIds.map((id) =>
+    conflictGuard(
+      db,
+      "SELECT COUNT(*) FROM media WHERE id = ? AND status = 'active'",
+      id,
+      1,
+    ),
+  );
+}
+
 export function draftReferenceStatements(
   db: D1Database,
   ownerId: string,
@@ -97,6 +111,7 @@ export async function saveDraft(
         locale,
         expectedVersion,
       ),
+      ...mediaActiveGuards(db, mediaIds),
       db
         .prepare(
           `UPDATE content_locales
@@ -151,6 +166,7 @@ export async function saveShared(
         itemId,
         expectedSharedVersion,
       ),
+      ...mediaActiveGuards(db, allMediaIds),
       db
         .prepare(
           `UPDATE content_items

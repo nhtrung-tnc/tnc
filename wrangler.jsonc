@@ -1,6 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "tnc-handicraft",
+  "main": "src/worker.ts",
   "compatibility_date": "2026-10-09",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
@@ -26,5 +27,8 @@
       "binding": "MEDIA",
       "bucket_name": "tnc-media-local"
     }
-  ]
+  ],
+  "triggers": {
+    "crons": ["17 2 * * *"]
+  }
 }

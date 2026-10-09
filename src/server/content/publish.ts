@@ -4,6 +4,7 @@ import { AppError } from "../http/errors";
 import {
   conflictGuard,
   draftReferenceStatements,
+  mediaActiveGuards,
   requireActiveMedia,
 } from "./drafts";
 import { getDraft } from "./repository";
@@ -111,6 +112,7 @@ export async function publishLocale(
         itemId,
         expectedSharedVersion,
       ),
+      ...mediaActiveGuards(db, mediaIds),
       db
         .prepare(
           `INSERT INTO content_revisions
@@ -193,6 +195,7 @@ export async function saveItemMetadata(
     }),
   );
   await requireActiveMedia(db, [...new Set(snapshots.flatMap(collectMediaIds))]);
+  const mediaIds = [...new Set(snapshots.flatMap(collectMediaIds))];
 
   try {
     await db.batch([
@@ -202,6 +205,7 @@ export async function saveItemMetadata(
         itemId,
         expectedSharedVersion,
       ),
+      ...mediaActiveGuards(db, mediaIds),
       db
         .prepare(
           `UPDATE content_items SET slug = ?, shared_data_json = ?,

@@ -4,6 +4,7 @@ import { AppError } from "../http/errors";
 import {
   conflictGuard,
   draftReferenceStatements,
+  mediaActiveGuards,
   requireActiveMedia,
 } from "./drafts";
 import { getDraft } from "./repository";
@@ -52,6 +53,7 @@ export async function restoreRevision(
     }),
   );
   await requireActiveMedia(db, [...new Set(snapshots.flatMap(collectMediaIds))]);
+  const mediaIds = [...new Set(snapshots.flatMap(collectMediaIds))];
 
   try {
     await db.batch([
@@ -68,6 +70,7 @@ export async function restoreRevision(
         itemId,
         expectedSharedVersion,
       ),
+      ...mediaActiveGuards(db, mediaIds),
       db
         .prepare(
           `UPDATE content_items SET slug = ?, shared_data_json = ?,
