@@ -6,6 +6,29 @@ The production Worker needs D1 (`DB`), R2 (`MEDIA`), Cloudflare Images (`IMAGES`
 
 Cloudflare Access must protect every path under `/admin`, `/api/admin`, and `/preview` on the test hostname and custom domain. A CMS invitation only creates a D1 authorization record; the operator must independently allow the same identity in the Access policy.
 
+## Account onboarding and preflight
+
+Before provisioning, run `environment_status`, check credential presence without printing values, and run `XDG_CONFIG_HOME=.tool-config npx wrangler whoami` with raw identity output kept private. API success is the authorization evidence; a runtime readiness state of `unknown` is not proof of readiness.
+
+Locate `tnc-cms-production` by name through the D1 API and reuse it. Select its identifier programmatically into ignored local configuration. Inspect applied migrations before changing schema; never recreate the database just because the local production config is absent. Do not copy account/resource identifiers or real identities into this runbook.
+
+Account owners must resolve account activation blockers in the dashboard:
+
+1. **R2:** select the deployment account, open **R2 Object Storage**, and complete **Get started/Enable R2**, including any subscription and payment requirements displayed. API code `10042` explicitly requires dashboard activation. Do not try to bypass this by requesting broader token permissions.
+2. **Zero Trust/Access:** open **Zero Trust**, select **Get started/Enable Access**, choose the unique team name, choose the subscription plan and complete billing/onboarding. Cloudflare's onboarding documentation requires payment details even for the Free plan. API `access.api.error.not_enabled` remains a blocker until onboarding completes.
+3. **Access login:** choose the login method (the default Cloudflare identity provider, email one-time PIN, or the organization's IdP). Add exact allowed Admin/Editor identities separately from their D1 roles. Provide initial identities through protected local/runtime configuration, not Git or public evidence.
+4. **Images:** review the account's Images/Transformations availability and pricing. Stats API code `5403` can represent unavailable service entitlement or authorization/account scope; do not claim a unique cause. This app passes R2 bytes to an Images binding, rather than storing media in hosted Images. Binding configuration alone does not prove production image transformations pass.
+
+Use narrowly scoped Account permissions on the deployment account: `D1: Edit`, `Workers R2 Storage: Edit`, `Cloudflare Images: Read` for the stats preflight, `Access: Apps and Policies: Edit`, and `Access: Organizations: Read`. Add `Access: Identity Providers: Edit` only if automation configures the login provider; organization/group edit permissions are only needed for their corresponding mutations. Dashboard `Edit` is often named `Write` in API permission groups. Do not grant all-account or broad Zero Trust permissions merely to work around activation errors.
+
+The API token's R2 permissions and optional S3-compatible object credentials are different. Bucket provisioning uses the Cloudflare REST API; runtime Worker media access uses its R2 binding. Do not embed S3 credentials in the Worker.
+
+After activation, create distinct media and backup buckets, enable `IMAGES`, and configure an Access application covering private roots, their descendants and aliases on the selected test hostname. Match the app's Cloudflare-generated AUD to `ACCESS_AUDIENCE` and organization auth domain to `ACCESS_ISSUER`. The current app expects one audience. Disable alternate public Worker hostnames unless they receive the same intended protection. Keep public locale routes accessible for smoke testing.
+
+Before deploying, record actual account limits/pricing and Time Travel retention, resolve the canonical test origin, and provide the cache-purge credential as a Worker secret. Do not substitute test placeholders for production issuer/audience or select the initial Admin from the token owner's email. Recheck all API preflights after the owner reports activation complete.
+
+References: [Zero Trust onboarding](https://developers.cloudflare.com/cloudflare-one/setup/), [API token permissions](https://developers.cloudflare.com/fundamentals/api/reference/permissions/), [R2 tokens](https://developers.cloudflare.com/r2/api/tokens/), [Images binding](https://developers.cloudflare.com/images/optimization/binding/).
+
 ## Safe initialization
 
 Every operational command requires both an explicit `--target local|production` and a `file://` module in `OPERATION_CONFIG_MODULE`. The ignored runtime module supplies concrete D1/R2 adapters and a credential provider backed by the official Wrangler or Cloudflare API. The target inside that module must match the CLI argument.
