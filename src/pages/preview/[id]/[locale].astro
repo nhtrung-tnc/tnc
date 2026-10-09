@@ -1,0 +1,50 @@
+---
+import { env } from "cloudflare:workers";
+import Footer from "../../../components/site/Footer.astro";
+import Header from "../../../components/site/Header.astro";
+import Homepage from "../../../components/site/Homepage.astro";
+import InsightArticle from "../../../components/site/InsightArticle.astro";
+import SiteLayout from "../../../layouts/SiteLayout.astro";
+import { getDraft } from "../../../server/content/repository";
+import { privateCacheHeaders } from "../../../server/site/cache";
+import { fallbackHomepage, parseLocale } from "../../../server/site/fallback";
+import { renderMarkdown } from "../../../server/site/markdown";
+import { listPublished } from "../../../server/site/queries";
+import { buildPageSeo } from "../../../server/site/seo";
+import type { Draft, Published } from "../../../server/content/types";
+
+const locale = parseLocale(Astro.params.locale);
+let draft: Draft | null = null;
+let insights: Published[] = [];
+let failed = false;
+if (locale) {
+  try {
+    draft = await getDraft(env.DB, Astro.params.id ?? "", locale);
+    insights = (await listPublished(env.DB, locale)).filter(({ snapshot }) => snapshot.type === "insight");
+  } catch { failed = true; }
+}
+if (!locale || !draft) Astro.response.status = failed ? 404 : 400;
+privateCacheHeaders().forEach((value, name) => Astro.response.headers.set(name, value));
+Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
+const chrome = draft?.snapshot.type === "homepage" ? draft.snapshot.data : fallbackHomepage(locale ?? "en");
+const seo = buildPageSeo({
+  title: `Preview | ${draft?.snapshot.data.seo.title ?? "TNC Handicraft"}`,
+  description: draft?.snapshot.data.seo.description ?? "Draft preview",
+  path: Astro.url.pathname,
+  locale: locale ?? "en",
+  origin: env.SITE_ORIGIN,
+  robots: "noindex,nofollow",
+});
+const articleHtml = draft?.snapshot.type === "insight" ? await renderMarkdown(draft.snapshot.data.bodyMarkdown) : "";
+const previewInsight = draft?.snapshot.type === "insight" && locale ? {
+  itemId: draft.itemId,
+  locale,
+  revisionId: "preview",
+  publishedAt: new Date(0).toISOString(),
+  snapshot: draft.snapshot,
+} satisfies Published : null;
+const settingsData = draft?.snapshot.type === "settings" ? draft.snapshot.data : null;
+---
+<SiteLayout locale={locale ?? "en"} seo={seo}>
+  {draft && locale ? <><Header data={chrome} locale={locale} />{draft.snapshot.type === "homepage" ? <Homepage data={draft.snapshot.data} insights={insights} /> : draft.snapshot.type === "insight" && previewInsight ? <InsightArticle insight={previewInsight} html={articleHtml} backLabel="Preview" /> : settingsData ? <main><article class="article-shell"><p class="eyebrow">Settings preview</p><h1>{settingsData.siteName}</h1><p>{settingsData.tagline}</p></article></main> : null}<Footer data={chrome} /></> : <main class="error-page"><h1>Preview not found</h1></main>}
+</SiteLayout>
