@@ -7,6 +7,12 @@
     "binding": "ASSETS",
     "directory": "./dist"
   },
+  "vars": {
+    "ACCESS_ISSUER": "https://test.cloudflareaccess.com",
+    "ACCESS_AUDIENCE": "test-audience",
+    "SITE_ORIGIN": "https://site.test",
+    "CLOUDFLARE_ZONE_ID": "local-zone"
+  },
   "d1_databases": [
     {
       "binding": "DB",

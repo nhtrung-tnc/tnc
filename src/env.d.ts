@@ -5,6 +5,11 @@ interface AppEnv {
   DB: D1Database;
   MEDIA: R2Bucket;
   IMAGES: ImagesBinding;
+  ACCESS_ISSUER: string;
+  ACCESS_AUDIENCE: string;
+  SITE_ORIGIN: string;
+  CLOUDFLARE_ZONE_ID: string;
+  CACHE_PURGE_TOKEN: string;
   TEST_MIGRATIONS?: Array<{ name: string; queries: string[] }>;
 }
 
@@ -14,9 +19,8 @@ declare namespace Cloudflare {
 
 declare namespace App {
   interface Locals {
-    runtime: {
-      env: AppEnv;
-      ctx: ExecutionContext;
-    };
+    actor?: import("./server/content/types").Actor;
+    requestId?: string;
+    cfContext: ExecutionContext;
   }
 }

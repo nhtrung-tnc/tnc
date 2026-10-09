@@ -19,7 +19,7 @@ describe("Astro Workers runtime", () => {
   });
 
   it("does not expose legacy Decap assets", async () => {
-    const response = await worker.fetch("https://site.test/admin/config.yml");
+    const response = await worker.fetch("https://site.test/config.yml");
     expect(response.status).toBe(404);
   });
 });
