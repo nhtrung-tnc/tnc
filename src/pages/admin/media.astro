@@ -1,0 +1,8 @@
+---
+import { env } from "cloudflare:workers";
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { listMedia } from "../../server/media/repository";
+const result = await listMedia(env.DB, { limit:100 });
+const canDelete = Astro.locals.actor?.role === "admin";
+---
+<AdminLayout title="Thư viện media"><section class="management-panel"><h2>Tải lên</h2><form data-media-upload class="management-form"><label>Tệp ảnh hoặc PDF<input name="file" type="file" required accept="image/jpeg,image/png,image/webp,image/avif,application/pdf" /></label><button type="submit">Tải lên</button><span data-upload-status aria-live="polite"></span></form></section><section class="management-panel"><div class="section-heading"><h2>Media</h2><label>Tìm theo tên<input type="search" data-media-search /></label></div><div class="media-grid" data-media-results data-can-delete={String(canDelete)}>{result.items.map((item) => <article data-media-id={item.id}>{item.mimeType.startsWith("image/") ? <img src={`/media/${item.id}`} alt="" /> : <div class="file-preview">PDF</div>}<strong>{item.originalFilename}</strong><small>{item.width && item.height ? `${item.width} × ${item.height}` : item.mimeType}</small><code>{item.id}</code><p>{item.references.length ? `Đang dùng: ${item.references.join(", ")}` : "Chưa được sử dụng"}</p>{canDelete && item.status === "active" && <button type="button" data-delete-media disabled={item.references.length > 0}>Xóa</button>}</article>)}</div></section><script>import "../../client/admin/media";</script></AdminLayout>

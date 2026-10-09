@@ -1,5 +1,6 @@
 ---
 import type { HomepageData, Locale } from "../../server/content/types";
+import MediaPicker from "./MediaPicker.astro";
 interface Props { data: HomepageData; locale: Locale }
 const { data } = Astro.props;
 const repeats = [
@@ -18,4 +19,4 @@ const repeats = [
 <fieldset><legend>Insights</legend>{(["eyebrow","title","body","emptyMessage","cardLabel","ctaLabel","ctaTarget"] as const).map((key) => <label>{key}<input data-path={`insights.${key}`} value={data.insights[key]} /></label>)}</fieldset>
 <fieldset><legend>Liên hệ và footer</legend><label>Eyebrow liên hệ<input data-path="contact.eyebrow" value={data.contact.eyebrow} /></label><label>Tiêu đề liên hệ<input data-path="contact.title" value={data.contact.title} /></label><label>Footer title<input data-path="footer.title" value={data.footer.title} /></label><label>Footer description<textarea data-path="footer.description">{data.footer.description}</textarea></label><label>Footer note<textarea data-path="footer.note">{data.footer.note}</textarea></label></fieldset>
 {repeats.map(([path,label,items,keys]) => <fieldset data-repeat={path} data-repeat-keys={keys.join(",")}><legend>{label}</legend><div data-repeat-items>{items.map((item) => <div class="repeat-item" data-repeat-item>{keys.map((key) => <label>{key}{key === "body" || key === "list" ? <textarea data-key={key}>{Array.isArray(item[key as keyof typeof item]) ? (item[key as keyof typeof item] as string[]).join("\n") : item[key as keyof typeof item] as string ?? ""}</textarea> : <input data-key={key} value={item[key as keyof typeof item] as string ?? ""} />}</label>)}<button type="button" data-remove-item>Xóa</button></div>)}</div><button type="button" data-add-item>Thêm mục</button></fieldset>)}
-<fieldset><legend>SEO</legend><label>SEO title<input data-path="seo.title" value={data.seo.title} /></label><label>SEO description<textarea data-path="seo.description">{data.seo.description}</textarea></label><label>Media ID SEO<input data-path="seo.image.mediaId" value={data.seo.image?.mediaId ?? ""} /></label><label>Alt ảnh SEO<input data-path="seo.image.alt" value={data.seo.image?.alt ?? ""} /></label></fieldset>
+<fieldset><legend>SEO</legend><label>SEO title<input data-path="seo.title" value={data.seo.title} /></label><label>SEO description<textarea data-path="seo.description">{data.seo.description}</textarea></label><MediaPicker label="Ảnh SEO" path="seo.image.mediaId" value={data.seo.image?.mediaId ?? ""} /><label>Alt ảnh SEO<input data-path="seo.image.alt" value={data.seo.image?.alt ?? ""} /></label></fieldset>

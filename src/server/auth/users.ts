@@ -9,6 +9,10 @@ interface UserRow {
   active: number;
 }
 
+export function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
 function toActor(row: UserRow, subject: string): Actor {
   if (row.active !== 1) {
     throw new AppError("USER_DISABLED", 403, "This account is disabled");
@@ -38,7 +42,7 @@ export async function findOrLinkUser(
   const linked = await bySubject(db, subject);
   if (linked) return toActor(linked, subject);
 
-  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedEmail = normalizeEmail(email);
   await db
     .prepare(
       `UPDATE users

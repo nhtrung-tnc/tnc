@@ -1,0 +1,5 @@
+---
+interface Props { label:string; value?:string; name?:string; path?:string }
+const { label, value = "", name, path } = Astro.props;
+---
+<div class="media-picker"><label>{label}<input readonly value={value} name={name} data-path={path} /></label><button type="button" class="admin-button secondary" data-open-media>Chọn từ thư viện</button><button type="button" class="admin-button secondary" data-clear-media>Xóa lựa chọn</button><dialog><form method="dialog" class="dialog-heading"><strong>Chọn media</strong><button>Đóng</button></form><label>Tìm theo tên<input type="search" data-picker-search /></label><div class="media-grid" data-picker-results></div></dialog></div><script>import "../../client/admin/media";</script>
