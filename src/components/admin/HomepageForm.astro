@@ -1,0 +1,21 @@
+---
+import type { HomepageData, Locale } from "../../server/content/types";
+interface Props { data: HomepageData; locale: Locale }
+const { data } = Astro.props;
+const repeats = [
+  ["nav.links", "Liên kết điều hướng", data.nav.links, ["label","target"]],
+  ["hero.visual.pills", "Thẻ hero", data.hero.visual.pills, ["title","body"]],
+  ["hero.visual.stats", "Thống kê", data.hero.visual.stats, ["value","label"]],
+  ["capabilities.items", "Năng lực", data.capabilities.items, ["title","body"]],
+  ["products.items", "Nhóm sản phẩm", data.products.items, ["title","body"]],
+  ["contact.cards", "Thẻ liên hệ", data.contact.cards, ["title","body","list"]],
+] as const;
+---
+<fieldset><legend>Thông tin chung</legend><label>Tiêu đề<input required data-path="title" value={data.title} /></label><label>Mô tả<textarea required data-path="description">{data.description}</textarea></label><label>Alt ảnh chính<input data-path="primaryMediaAlt" value={data.primaryMediaAlt} /></label></fieldset>
+<fieldset><legend>Điều hướng</legend><label>Tên thương hiệu<input data-path="nav.brandTitle" value={data.nav.brandTitle} /></label><label>Phụ đề<input data-path="nav.brandSubtitle" value={data.nav.brandSubtitle} /></label><label>Nhãn đổi ngôn ngữ<input data-path="nav.languageSwitchLabel" value={data.nav.languageSwitchLabel} /></label></fieldset>
+<fieldset><legend>Hero</legend>{(["eyebrow","title","body"] as const).map((key) => <label>{key}<textarea data-path={`hero.${key}`}>{data.hero[key]}</textarea></label>)}<label>Nút chính — nhãn<input data-path="hero.primary.label" value={data.hero.primary.label} /></label><label>Nút chính — liên kết<input data-path="hero.primary.target" value={data.hero.primary.target} /></label><label>Nút phụ — nhãn<input data-path="hero.secondary.label" value={data.hero.secondary.label} /></label><label>Nút phụ — liên kết<input data-path="hero.secondary.target" value={data.hero.secondary.target} /></label><label>Eyebrow panel<input data-path="hero.visual.eyebrow" value={data.hero.visual.eyebrow} /></label></fieldset>
+{(["about","capabilities","products"] as const).map((section) => <fieldset><legend>{section}</legend><label>Eyebrow<input data-path={`${section}.eyebrow`} value={data[section].eyebrow} /></label><label>Tiêu đề<input data-path={`${section}.title`} value={data[section].title} /></label>{"body" in data[section] && <label>Nội dung<textarea data-path={`${section}.body`}>{data[section].body}</textarea></label>}</fieldset>)}
+<fieldset><legend>Insights</legend>{(["eyebrow","title","body","emptyMessage","cardLabel","ctaLabel","ctaTarget"] as const).map((key) => <label>{key}<input data-path={`insights.${key}`} value={data.insights[key]} /></label>)}</fieldset>
+<fieldset><legend>Liên hệ và footer</legend><label>Eyebrow liên hệ<input data-path="contact.eyebrow" value={data.contact.eyebrow} /></label><label>Tiêu đề liên hệ<input data-path="contact.title" value={data.contact.title} /></label><label>Footer title<input data-path="footer.title" value={data.footer.title} /></label><label>Footer description<textarea data-path="footer.description">{data.footer.description}</textarea></label><label>Footer note<textarea data-path="footer.note">{data.footer.note}</textarea></label></fieldset>
+{repeats.map(([path,label,items,keys]) => <fieldset data-repeat={path} data-repeat-keys={keys.join(",")}><legend>{label}</legend><div data-repeat-items>{items.map((item) => <div class="repeat-item" data-repeat-item>{keys.map((key) => <label>{key}{key === "body" || key === "list" ? <textarea data-key={key}>{Array.isArray(item[key as keyof typeof item]) ? (item[key as keyof typeof item] as string[]).join("\n") : item[key as keyof typeof item] as string ?? ""}</textarea> : <input data-key={key} value={item[key as keyof typeof item] as string ?? ""} />}</label>)}<button type="button" data-remove-item>Xóa</button></div>)}</div><button type="button" data-add-item>Thêm mục</button></fieldset>)}
+<fieldset><legend>SEO</legend><label>SEO title<input data-path="seo.title" value={data.seo.title} /></label><label>SEO description<textarea data-path="seo.description">{data.seo.description}</textarea></label><label>Media ID SEO<input data-path="seo.image.mediaId" value={data.seo.image?.mediaId ?? ""} /></label><label>Alt ảnh SEO<input data-path="seo.image.alt" value={data.seo.image?.alt ?? ""} /></label></fieldset>

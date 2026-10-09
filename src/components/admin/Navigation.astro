@@ -1,0 +1,6 @@
+---
+import type { Role } from "../../server/content/types";
+interface Props { role: Role; email: string }
+const { role, email } = Astro.props;
+---
+<header class="admin-nav"><a class="admin-brand" href="/admin/">TNC CMS</a><nav aria-label="Quản trị"><a href="/admin/content/">Nội dung</a><a href="/admin/media/">Media</a>{role === "admin" && <a href="/admin/users/">Người dùng</a>}</nav><span>{email}</span></header>

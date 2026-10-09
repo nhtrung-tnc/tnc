@@ -1,0 +1,9 @@
+---
+import { env } from "cloudflare:workers";
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { listDrafts } from "../../../server/content/repository";
+const drafts = await listDrafts(env.DB);
+const grouped = [...new Map(drafts.map((draft) => [draft.itemId, draft])).values()];
+const formatter = new Intl.DateTimeFormat("vi-VN", { dateStyle:"medium", timeStyle:"short", timeZone:"Asia/Saigon" });
+---
+<AdminLayout title="Nội dung"><form class="create-content" data-create-content><fieldset><legend>Tạo nội dung</legend><label>Loại<select name="type"><option value="insight">Bài viết</option><option value="homepage">Trang chủ</option><option value="settings">Cài đặt</option></select></label><label>Đường dẫn (slug)<input name="slug" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="vi-du-bai-viet" /></label><button type="submit">Tạo và chỉnh sửa</button><span data-create-status aria-live="polite"></span></fieldset></form><section class="content-list">{grouped.map((item) => <article><div><span class="type-badge">{item.type}</span><h2>{item.slug}</h2><p>Cập nhật {formatter.format(new Date(item.updatedAt))}</p></div><a class="admin-button" href={`/admin/content/${item.itemId}/`}>Chỉnh sửa</a></article>)}</section><script>import "../../../client/admin/content-list";</script></AdminLayout>

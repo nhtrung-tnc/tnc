@@ -1,0 +1,26 @@
+---
+import { env } from "cloudflare:workers";
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import LocaleTabs from "../../../components/admin/LocaleTabs.astro";
+import HomepageForm from "../../../components/admin/HomepageForm.astro";
+import InsightForm from "../../../components/admin/InsightForm.astro";
+import SettingsForm from "../../../components/admin/SettingsForm.astro";
+import RevisionList from "../../../components/admin/RevisionList.astro";
+import { getDraft } from "../../../server/content/repository";
+import type { Draft, Locale } from "../../../server/content/types";
+
+const id = Astro.params.id ?? "";
+const locales: Locale[] = ["vi","en","ja"];
+let drafts: Draft[] = [];
+let notFound = false;
+try { drafts = await Promise.all(locales.map((locale) => getDraft(env.DB, id, locale))); } catch { notFound = true; Astro.response.status = 404; }
+const revisions = new Map<Locale, Array<{ id:string; revision_number:number; published_at:string; published_by:string }>>();
+for (const locale of locales) {
+  const rows = await env.DB.prepare(`SELECT r.id, r.revision_number, r.published_at, r.published_by FROM content_revisions r JOIN content_locales l ON l.id = r.content_locale_id WHERE l.content_item_id = ? AND l.locale = ? ORDER BY r.revision_number DESC LIMIT 20`).bind(id, locale).all<{ id:string; revision_number:number; published_at:string; published_by:string }>();
+  revisions.set(locale, rows.results);
+}
+const canPublish = Astro.locals.actor?.role === "admin";
+---
+<AdminLayout title={notFound ? "Không tìm thấy nội dung" : `Chỉnh sửa: ${drafts[0]?.snapshot.slug}`}>
+  {!notFound && <><form class="metadata-form editor-shell" data-item-id={id} data-shared-version={drafts[0].sharedVersion}><fieldset><legend>Thông tin dùng chung cho ba ngôn ngữ</legend><label>Đường dẫn (slug)<input name="slug" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value={drafts[0].snapshot.slug} /></label><label>Media ID ảnh chính<input name="primaryMediaId" value={drafts[0].snapshot.shared.primaryMediaId ?? ""} /></label></fieldset><div class="form-actions"><button type="submit">Lưu thông tin dùng chung</button><span data-metadata-status aria-live="polite"></span></div></form><LocaleTabs /><section class="editor-shell">{drafts.map((draft, index) => <div data-locale-panel={draft.locale} hidden={index !== 0}><div class="editor-toolbar"><span>Nháp v{draft.version} · Shared v{draft.sharedVersion}</span><a class="admin-button secondary" target="_blank" href={`/preview/${draft.itemId}/${draft.locale}`}>Xem trước</a></div><form class="editor-form" data-item-id={draft.itemId} data-locale={draft.locale} data-version={draft.version} data-shared-version={draft.sharedVersion} data-initial={JSON.stringify(draft.snapshot.data)}>{draft.snapshot.type === "homepage" ? <HomepageForm data={draft.snapshot.data} locale={draft.locale} /> : draft.snapshot.type === "insight" ? <InsightForm data={draft.snapshot.data} locale={draft.locale} /> : <SettingsForm data={draft.snapshot.data} locale={draft.locale} />}<div class="form-actions"><button class="admin-button" type="submit">Lưu nháp</button>{canPublish && <button class="admin-button publish" type="button" data-publish>Xuất bản</button>}</div><p data-editor-status aria-live="polite"></p><div data-conflict-actions hidden><button type="button" data-copy>Sao chép dữ liệu</button><button type="button" data-reload>Tải lại bản mới</button></div></form><RevisionList revisions={revisions.get(draft.locale) ?? []} canRestore={canPublish} locale={draft.locale} /></div>)}</section><script>import "../../../client/admin/editor";</script></>}
+</AdminLayout>

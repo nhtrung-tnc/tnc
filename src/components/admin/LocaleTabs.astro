@@ -1,0 +1,7 @@
+---
+import type { Locale } from "../../server/content/types";
+interface Props { active?: Locale }
+const { active = "vi" } = Astro.props;
+const labels = { vi: "Tiếng Việt", en: "English", ja: "日本語" } as const;
+---
+<div class="locale-tabs" role="tablist" aria-label="Ngôn ngữ nội dung">{(["vi","en","ja"] as const).map((locale) => <button type="button" role="tab" data-locale-tab={locale} aria-selected={locale === active}>{labels[locale]}</button>)}</div>

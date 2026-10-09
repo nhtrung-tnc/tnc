@@ -1,0 +1,6 @@
+---
+import type { InsightData, Locale } from "../../server/content/types";
+interface Props { data: InsightData; locale: Locale }
+const { data } = Astro.props;
+---
+<fieldset><legend>Bài viết</legend><label>Tiêu đề<input required maxlength="200" data-path="title" value={data.title} /></label><label>Mô tả<textarea required maxlength="500" data-path="description">{data.description}</textarea></label><label>Tác giả<input required data-path="author" value={data.author} /></label><label>Ngày hiển thị<input required type="date" data-path="displayDate" value={data.displayDate} /></label><label>Nội dung Markdown<textarea class="markdown-editor" required maxlength="200000" data-path="bodyMarkdown">{data.bodyMarkdown}</textarea></label><label>Alt ảnh chính<input maxlength="500" data-path="primaryMediaAlt" value={data.primaryMediaAlt} /></label></fieldset><fieldset><legend>SEO</legend><label>SEO title<input required maxlength="200" data-path="seo.title" value={data.seo.title} /></label><label>SEO description<textarea required maxlength="500" data-path="seo.description">{data.seo.description}</textarea></label><label>Media ID SEO<input data-path="seo.image.mediaId" value={data.seo.image?.mediaId ?? ""} /></label><label>Alt ảnh SEO<input data-path="seo.image.alt" value={data.seo.image?.alt ?? ""} /></label></fieldset>

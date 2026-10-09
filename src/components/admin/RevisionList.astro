@@ -1,0 +1,7 @@
+---
+interface Revision { id:string; revision_number:number; published_at:string; published_by:string }
+interface Props { revisions: Revision[]; canRestore: boolean; locale: string }
+const { revisions, canRestore, locale } = Astro.props;
+const formatter = new Intl.DateTimeFormat("vi-VN", { dateStyle:"medium", timeStyle:"short", timeZone:"Asia/Saigon" });
+---
+<section class="revision-list"><h2>Lịch sử xuất bản — {locale.toUpperCase()}</h2>{revisions.length ? <ol>{revisions.map((revision) => <li><span>#{revision.revision_number} · {formatter.format(new Date(revision.published_at))}</span>{canRestore && <button type="button" data-restore={revision.id}>Khôi phục thành nháp</button>}</li>)}</ol> : <p>Chưa có revision.</p>}</section>

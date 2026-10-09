@@ -1,0 +1,8 @@
+---
+import Navigation from "../components/admin/Navigation.astro";
+import "../styles/admin.css";
+interface Props { title: string }
+const { title } = Astro.props;
+const actor = Astro.locals.actor;
+---
+<!doctype html><html lang="vi"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><meta name="robots" content="noindex,nofollow" /><title>{title} | TNC CMS</title></head><body><Navigation role={actor?.role ?? "editor"} email={actor?.email ?? ""} /><main class="admin-main"><header class="page-heading"><p class="admin-eyebrow">TNC Handicraft CMS</p><h1>{title}</h1></header><slot /></main></body></html>

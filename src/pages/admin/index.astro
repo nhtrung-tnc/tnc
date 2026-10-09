@@ -1,0 +1,12 @@
+---
+import { env } from "cloudflare:workers";
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { listDrafts } from "../../server/content/repository";
+const drafts = await listDrafts(env.DB);
+const items = new Set(drafts.map(({ itemId }) => itemId)).size;
+const unpublished = drafts.filter(({ publishedRevisionId }) => !publishedRevisionId).length;
+const latestPublish = await env.DB.prepare("SELECT published_at FROM content_revisions ORDER BY published_at DESC LIMIT 1").first<{ published_at:string }>();
+const recentAudit = await env.DB.prepare("SELECT action, resource_type, created_at FROM audit_events ORDER BY created_at DESC LIMIT 5").all<{ action:string; resource_type:string; created_at:string }>();
+const formatter = new Intl.DateTimeFormat("vi-VN", { dateStyle:"medium", timeStyle:"short", timeZone:"Asia/Saigon" });
+---
+<AdminLayout title="Tổng quan"><section class="stat-grid"><article><strong>{items}</strong><span>nội dung</span></article><article><strong>{unpublished}</strong><span>locale chưa xuất bản</span></article></section><p>Lần xuất bản gần nhất: {latestPublish ? formatter.format(new Date(latestPublish.published_at)) : "Chưa có"}</p><section class="revision-list"><h2>Hoạt động gần đây</h2>{recentAudit.results.length ? <ol>{recentAudit.results.map((event) => <li><span>{event.action} · {event.resource_type}</span><time datetime={event.created_at}>{formatter.format(new Date(event.created_at))}</time></li>)}</ol> : <p>Chưa có hoạt động.</p>}</section><p><a class="admin-button" href="/admin/content/">Mở danh sách nội dung</a></p></AdminLayout>
