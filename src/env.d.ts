@@ -5,6 +5,7 @@ interface AppEnv {
   DB: D1Database;
   MEDIA: R2Bucket;
   IMAGES: ImagesBinding;
+  TEST_MIGRATIONS?: Array<{ name: string; queries: string[] }>;
 }
 
 declare namespace Cloudflare {

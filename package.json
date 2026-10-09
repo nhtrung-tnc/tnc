@@ -11,7 +11,7 @@
     "build": "XDG_CONFIG_HOME=/workspace/.tool-config ASTRO_TELEMETRY_DISABLED=1 astro check && XDG_CONFIG_HOME=/workspace/.tool-config ASTRO_TELEMETRY_DISABLED=1 astro build",
     "check": "XDG_CONFIG_HOME=/workspace/.tool-config ASTRO_TELEMETRY_DISABLED=1 astro check",
     "pretest:integration": "XDG_CONFIG_HOME=/workspace/.tool-config ASTRO_TELEMETRY_DISABLED=1 astro build",
-    "test": "npm run test:integration",
+    "test": "npm run test:unit && npm run test:integration",
     "test:unit": "vitest run --config vitest.unit.config.ts",
     "test:integration": "XDG_CONFIG_HOME=/workspace/.tool-config vitest run --config vitest.config.ts",
     "test:e2e": "playwright test",
@@ -20,7 +20,8 @@
   },
   "dependencies": {
     "@astrojs/cloudflare": "14.3.4",
-    "astro": "7.3.8"
+    "astro": "7.3.8",
+    "zod": "4.6.5"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
