@@ -1,0 +1,26 @@
+name: Astro CMS checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers npx playwright install --with-deps chromium
+      - run: npm run db:migrate:local
+      - run: npm run verify
+      - name: Prove Worker bundle and Cron entry
+        run: npm run build && npx wrangler deploy --dry-run

@@ -24,12 +24,27 @@ function setPrivateHeaders(response: Response): void {
   response.headers.set("Vary", vary ? `${vary}, Cookie` : "Cookie");
 }
 
+function withSecurityHeaders(response: Response): Response {
+  const secured = new Response(response.body, response);
+  secured.headers.set(
+    "Content-Security-Policy",
+    "default-src 'self'; base-uri 'self'; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; img-src 'self' data:; object-src 'none'; script-src 'self'; style-src 'self'; form-action 'self'",
+  );
+  secured.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  secured.headers.set("X-Content-Type-Options", "nosniff");
+  secured.headers.set("X-Frame-Options", "DENY");
+  secured.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  secured.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  return secured;
+}
+
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
   if (!isPrivatePath(pathname)) {
-    return isPublicCachePath(pathname)
+    const response = isPublicCachePath(pathname)
       ? loadPublicWithCache(context.request, env, next)
       : next();
+    return withSecurityHeaders(await response);
   }
 
   const requestId = context.request.headers.get("Cf-Ray") ?? crypto.randomUUID();
@@ -39,7 +54,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     context.locals.actor = await authenticate(context.request, env);
     const response = await next();
     setPrivateHeaders(response);
-    return response;
+    return withSecurityHeaders(response);
   } catch (error) {
     const safeError =
       error instanceof AppError
@@ -56,6 +71,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
     );
     const response = errorResponse(safeError, requestId);
     setPrivateHeaders(response);
-    return response;
+    return withSecurityHeaders(response);
   }
 });

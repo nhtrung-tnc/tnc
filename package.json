@@ -7,16 +7,17 @@
     "node": ">=24.0.0"
   },
   "scripts": {
-    "dev": "XDG_CONFIG_HOME=/workspace/.tool-config ASTRO_TELEMETRY_DISABLED=1 astro dev",
-    "build": "XDG_CONFIG_HOME=/workspace/.tool-config ASTRO_TELEMETRY_DISABLED=1 astro check && XDG_CONFIG_HOME=/workspace/.tool-config ASTRO_TELEMETRY_DISABLED=1 astro build",
-    "check": "XDG_CONFIG_HOME=/workspace/.tool-config ASTRO_TELEMETRY_DISABLED=1 astro check",
-    "pretest:integration": "XDG_CONFIG_HOME=/workspace/.tool-config ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "dev": "XDG_CONFIG_HOME=.tool-config ASTRO_TELEMETRY_DISABLED=1 astro dev",
+    "build": "XDG_CONFIG_HOME=.tool-config ASTRO_TELEMETRY_DISABLED=1 astro check && XDG_CONFIG_HOME=.tool-config ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "check": "XDG_CONFIG_HOME=.tool-config ASTRO_TELEMETRY_DISABLED=1 astro check",
+    "pretest:integration": "XDG_CONFIG_HOME=.tool-config ASTRO_TELEMETRY_DISABLED=1 astro build",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "vitest run --config vitest.unit.config.ts",
-    "test:integration": "XDG_CONFIG_HOME=/workspace/.tool-config vitest run --config vitest.config.ts",
-    "test:e2e": "playwright test",
-    "db:migrate:local": "XDG_CONFIG_HOME=/workspace/.tool-config wrangler d1 migrations apply DB --local",
-    "worker:dev": "XDG_CONFIG_HOME=/workspace/.tool-config ASTRO_TELEMETRY_DISABLED=1 astro build && XDG_CONFIG_HOME=/workspace/.tool-config wrangler dev --config dist/server/wrangler.json"
+    "test:integration": "XDG_CONFIG_HOME=.tool-config vitest run --config vitest.config.ts",
+    "test:e2e": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test",
+    "verify": "npm run check && npm run test:unit && npm run test:integration && npm run test:e2e && npm run build",
+    "db:migrate:local": "XDG_CONFIG_HOME=.tool-config wrangler d1 migrations apply DB --local",
+    "worker:dev": "XDG_CONFIG_HOME=.tool-config ASTRO_TELEMETRY_DISABLED=1 astro build && XDG_CONFIG_HOME=.tool-config wrangler dev --config dist/server/wrangler.json --persist-to .wrangler/state --port 8787"
   },
   "dependencies": {
     "@astrojs/cloudflare": "14.3.4",
@@ -32,6 +33,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
+    "@axe-core/playwright": "4.10.2",
     "@cloudflare/vitest-plugin": "1.4.0",
     "@cloudflare/workers-types": "5.20261009.1",
     "@playwright/test": "1.64.0",

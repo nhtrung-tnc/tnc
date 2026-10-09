@@ -1,112 +1,47 @@
-# TNC Handicraft Website
+# TNC Handicraft — Astro CMS on Cloudflare
 
-## Astro migration development
+Ứng dụng mới dùng Astro SSR trên Cloudflare Workers, D1 cho nội dung và tài khoản CMS, R2 cho media, cùng Cloudflare Access để bảo vệ `/admin`, `/api/admin` và `/preview`.
 
-The replacement application is an Astro SSR worker for Cloudflare. During the migration, the existing Hugo site remains in this repository so production can keep serving it until the Cloudflare cutover is verified.
+## Phát triển local
 
-Use Node 24, then install and check the new runtime:
+Yêu cầu Node.js 24. Cài đúng dependency đã khóa và khởi tạo D1 local:
 
 ```bash
 npm ci
-npm run check
-npm run test:integration -- tests/integration/runtime.test.ts
+npm run db:migrate:local
 npm run worker:dev
 ```
 
-The Astro public directory is `astro-public/`; the legacy `static/` and compiled root HTML are intentionally excluded from the Astro build.
+Worker chạy tại `http://127.0.0.1:8787`. Website công khai có các route `/vi/`, `/en/`, `/ja/`; dữ liệu local nằm trong state của Wrangler và media nằm trong R2 local.
 
-This repository now uses `Hugo + Decap CMS` for a multilingual company profile site on GitHub Pages.
+Không dùng Hugo hoặc Decap cho phát triển mới. Các file Hugo cũ chỉ được giữ tạm thời để rollback cho đến khi cutover production được xác nhận.
 
-## Structure
-
-- `content/vi/_index.md`: Vietnamese homepage content
-- `content/en/_index.md`: English homepage content
-- `content/ja/_index.md`: Japanese homepage content
-- `layouts/`: Hugo templates
-- `static/`: static assets, root landing page, CMS admin, uploads, and `CNAME`
-- `data/settings.yaml`: shared site settings for SEO and branding
-- `oauth-proxy/cloudflare-worker/`: sample Decap OAuth proxy for GitHub login
-
-## GitHub Pages deployment
-
-1. Push this repository to GitHub.
-2. In GitHub, open `Settings` > `Pages`.
-3. Set `Source` to `GitHub Actions`.
-4. Push to `main` and wait for the workflow in `.github/workflows/hugo.yaml` to finish.
-
-The workflow builds Hugo and deploys the generated `public/` output to GitHub Pages.
-
-## Local development
-
-Install Hugo locally, then run:
+## Kiểm tra
 
 ```bash
-hugo server
+npm run check
+npm test
+npm run test:e2e
+npm run verify
 ```
 
-The site will be available locally with language paths such as:
+`npm run verify` chạy type check, unit, integration, browser E2E và production build. Các E2E quản trị chỉ chạy khi có JWT Cloudflare Access ký cho môi trường local:
 
-- `/vi/`
-- `/en/`
-- `/ja/`
+- `E2E_ACCESS_JWT` và `E2E_EDITOR_ITEM_ID` cho Editor.
+- `E2E_ADMIN_ACCESS_JWT` cho Admin.
 
-## Blog / insights
+Không có auth bypass dành cho local. CI không có credential thật nên vẫn chạy các E2E công khai và báo riêng các kịch bản quản trị bị skip.
 
-The site now includes an `insights` section for SEO-focused articles:
+## Nhập nội dung thủ công
 
-- `content/vi/insights/`
-- `content/en/insights/`
-- `content/ja/insights/`
+1. Mời email trong `/admin/users/` với vai trò Admin hoặc Editor.
+2. Thêm cùng email đó vào policy của ứng dụng trong Cloudflare Zero Trust; lời mời D1 không tự thay đổi Access policy.
+3. Tạo nội dung tại `/admin/content/`, nhập riêng VI/EN/JA và lưu nháp.
+4. Chọn ảnh từ `/admin/media/`; alt text được nhập riêng theo từng locale.
+5. Mở Preview để kiểm tra. Chỉ Admin có thể Publish hoặc Restore revision; Restore chỉ tạo draft và cần Publish riêng.
 
-Hugo will generate:
+## Cấu hình Cloudflare
 
-- language-specific article lists
-- single article pages
-- homepage article previews
+`wrangler.jsonc` định nghĩa Worker, D1, R2 và Cron dọn media. Giá trị production và secret không được commit; xem runbook triển khai trước khi tạo resource hoặc đổi DNS.
 
-This is the section you should keep publishing into for long-tail SEO and better visibility in AI-generated search results.
-
-## Decap CMS
-
-The CMS entry point is:
-
-- `/admin/`
-
-Important:
-
-- `static/admin/config.yml` is now prefilled with:
-  - repo: `nhtrung-tnc/tnc`
-  - OAuth base URL: `https://oauth.tnchandicraft.com`
-- For GitHub Pages, Decap CMS with the GitHub backend requires an OAuth proxy.
-- Deploy the Worker and create the GitHub OAuth app before trying to sign in on production.
-- `local_backend: true` is already enabled for local CMS development.
-- The CMS now includes collections for the multilingual homepage and multilingual insight articles.
-
-## OAuth proxy
-
-A ready-to-adapt Cloudflare Worker example is included in:
-
-- `oauth-proxy/cloudflare-worker/`
-
-Start with:
-
-1. Create a GitHub OAuth app.
-2. Deploy the Worker.
-3. Point `oauth.tnchandicraft.com` to the Worker.
-4. Add `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` as Worker secrets.
-
-## Custom domain
-
-This project ships with `static/CNAME` set to:
-
-`tnchandicraft.com`
-
-Set the following DNS records where your domain is managed:
-
-- `A` record for `@` to `185.199.108.153`
-- `A` record for `@` to `185.199.109.153`
-- `A` record for `@` to `185.199.110.153`
-- `A` record for `@` to `185.199.111.153`
-- `CNAME` record for `www` to `<your-github-username>.github.io`
-
-After DNS updates, configure the custom domain in GitHub Pages and enable HTTPS.
+Thư mục public của Astro là `astro-public/`. `static/`, `content/`, `layouts/` và workflow Hugo là di sản rollback, không thuộc runtime Astro.

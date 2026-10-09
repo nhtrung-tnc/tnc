@@ -4,6 +4,9 @@
 /.DS_Store
 Thumbs.db
 /node_modules/
+/.npm-cache/
+/.playwright-browsers/
+/.tool-config/
 /dist/
 /.astro/
 /.wrangler/
