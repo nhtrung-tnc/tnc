@@ -26,6 +26,12 @@ export async function resetDatabase(): Promise<void> {
       publicCache.delete(new URL(path, env.SITE_ORIGIN).toString()),
     ),
   );
+  let cursor: string | undefined;
+  do {
+    const listed = await env.MEDIA.list({ cursor });
+    await Promise.all(listed.objects.map(({ key }) => env.MEDIA.delete(key)));
+    cursor = listed.truncated ? listed.cursor : undefined;
+  } while (cursor);
 }
 
 export async function seedActor(actor: {
