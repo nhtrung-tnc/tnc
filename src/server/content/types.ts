@@ -97,12 +97,10 @@ export interface SharedData {
 
 export type LocaleData = HomepageData | InsightData | SettingsData;
 
-export interface Snapshot {
-  type: ContentType;
-  slug: string;
-  shared: SharedData;
-  data: LocaleData;
-}
+export type Snapshot =
+  | { type: "homepage"; slug: string; shared: SharedData; data: HomepageData }
+  | { type: "insight"; slug: string; shared: SharedData; data: InsightData }
+  | { type: "settings"; slug: string; shared: SharedData; data: SettingsData };
 
 export interface Draft {
   itemId: string;

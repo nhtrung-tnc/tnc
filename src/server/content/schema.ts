@@ -1,5 +1,10 @@
 import { z } from "zod";
-import type { ContentType, Snapshot } from "./types";
+import type {
+  ContentType,
+  LocaleData,
+  SharedData,
+  Snapshot,
+} from "./types";
 
 const title = z.string().trim().min(1).max(200);
 const description = z.string().trim().min(1).max(500);
@@ -161,6 +166,26 @@ export function validateSnapshot(type: ContentType, input: unknown): Snapshot {
   return schemas[type].parse(input) as Snapshot;
 }
 
+export function validateSlug(input: unknown): string {
+  return slugSchema.parse(input);
+}
+
+export function validateSharedData(input: unknown): SharedData {
+  return sharedSchema.parse(input);
+}
+
+export function validateLocaleData(
+  type: ContentType,
+  input: unknown,
+): LocaleData {
+  const dataSchemas = {
+    homepage: homepageDataSchema,
+    insight: insightDataSchema,
+    settings: settingsDataSchema,
+  } satisfies Record<ContentType, z.ZodType>;
+  return dataSchemas[type].parse(input) as LocaleData;
+}
+
 export function collectMediaIds(snapshot: Snapshot): string[] {
   const ids = new Set<string>();
   if (snapshot.shared.primaryMediaId) ids.add(snapshot.shared.primaryMediaId);
@@ -178,7 +203,7 @@ export function collectMediaIds(snapshot: Snapshot): string[] {
   visit(snapshot.data);
 
   if (snapshot.type === "insight") {
-    const markdown = (snapshot.data as { bodyMarkdown: string }).bodyMarkdown;
+    const markdown = snapshot.data.bodyMarkdown;
     for (const match of markdown.matchAll(/\/media\/([A-Za-z0-9_-]+)/g)) {
       if (match[1]) ids.add(match[1]);
     }
