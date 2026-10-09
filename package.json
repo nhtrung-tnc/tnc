@@ -17,6 +17,9 @@
     "test:e2e": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test",
     "verify": "npm run check && npm run test:unit && npm run test:integration && npm run test:e2e && npm run build",
     "db:migrate:local": "XDG_CONFIG_HOME=.tool-config wrangler d1 migrations apply DB --local",
+    "admin:bootstrap": "tsx scripts/bootstrap-admin.ts",
+    "backup": "tsx scripts/backup.ts",
+    "restore:rehearsal": "tsx scripts/restore-rehearsal.ts",
     "worker:dev": "XDG_CONFIG_HOME=.tool-config ASTRO_TELEMETRY_DISABLED=1 astro build && XDG_CONFIG_HOME=.tool-config wrangler dev --config dist/server/wrangler.json --persist-to .wrangler/state --port 8787"
   },
   "dependencies": {
@@ -37,6 +40,7 @@
     "@cloudflare/vitest-plugin": "1.4.0",
     "@cloudflare/workers-types": "5.20261009.1",
     "@playwright/test": "1.64.0",
+    "tsx": "4.20.6",
     "typescript": "6.0.3",
     "vitest": "4.1.11",
     "wrangler": "4.149.0"
