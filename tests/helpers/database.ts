@@ -4,6 +4,7 @@ import { applyD1Migrations } from "cloudflare:test";
 const dropSql = `
 DROP TRIGGER IF EXISTS content_revisions_no_update;
 DROP TRIGGER IF EXISTS content_revisions_no_delete;
+DROP TRIGGER IF EXISTS audit_fail;
 DROP TABLE IF EXISTS d1_migrations;
 DROP TABLE IF EXISTS media_references;
 DROP TABLE IF EXISTS published_routes;

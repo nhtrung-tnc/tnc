@@ -16,7 +16,7 @@ import type {
   Snapshot,
 } from "./types";
 
-function conflictGuard(
+export function conflictGuard(
   db: D1Database,
   sql: string,
   ...values: unknown[]
@@ -29,7 +29,7 @@ function conflictGuard(
     .bind(...values);
 }
 
-async function requireActiveMedia(
+export async function requireActiveMedia(
   db: D1Database,
   mediaIds: string[],
 ): Promise<void> {
@@ -44,7 +44,7 @@ async function requireActiveMedia(
   }
 }
 
-function referenceStatements(
+export function draftReferenceStatements(
   db: D1Database,
   ownerId: string,
   snapshot: Snapshot,
@@ -105,7 +105,7 @@ export async function saveDraft(
            WHERE content_item_id = ? AND locale = ?`,
         )
         .bind(JSON.stringify(snapshot.data), actor.id, itemId, locale),
-      ...referenceStatements(db, `${itemId}:${locale}`, snapshot),
+      ...draftReferenceStatements(db, `${itemId}:${locale}`, snapshot),
       auditStatement(db, actor, "draft.save", `${itemId}:${locale}`),
     ]);
   } catch {
@@ -159,8 +159,15 @@ export async function saveShared(
            WHERE id = ?`,
         )
         .bind(JSON.stringify(safeShared), itemId),
+      db
+        .prepare(
+          `UPDATE content_locales SET updated_by = ?,
+             updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+           WHERE content_item_id = ?`,
+        )
+        .bind(actor.id, itemId),
       ...snapshots.flatMap((snapshot, index) =>
-        referenceStatements(db, `${itemId}:${drafts[index]!.locale}`, snapshot),
+        draftReferenceStatements(db, `${itemId}:${drafts[index]!.locale}`, snapshot),
       ),
       auditStatement(db, actor, "shared.save", itemId),
     ]);
