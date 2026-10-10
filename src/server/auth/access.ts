@@ -23,7 +23,9 @@ function remoteKeyFor(issuer: string): JWTVerifyGetKey {
 }
 
 function bearerFrom(request: Request): string | null {
-  return request.headers.get("Cf-Access-Jwt-Assertion");
+  const assertion = request.headers.get("Cf-Access-Jwt-Assertion");
+  if (assertion !== null) return assertion;
+  return request.headers.get("Cookie")?.match(/(?:^|;\s*)CF_Authorization=([^;]+)/)?.[1] ?? null;
 }
 
 export function createAuthenticator(getKey?: JWTVerifyGetKey): Authenticator {

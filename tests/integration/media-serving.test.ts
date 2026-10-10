@@ -41,8 +41,20 @@ describe("media visibility and responses", () => {
     expect(privateResponse.status).toBe(200);
     expect(privateResponse.headers.get("Cache-Control")).toBe("private, no-store");
 
+    const cookieRequest = new Request(`https://site.test/media/${media.id}`, {
+      headers: { Cookie: `other=value; CF_Authorization=${token}` },
+    });
+    expect((await serve(cookieRequest, env, media.id)).status).toBe(200);
+    expect((await serve(new Request(`https://site.test/media/${media.id}`, {
+      headers: { Cookie: "CF_Authorization=invalid" },
+    }), env, media.id)).status).toBe(404);
+    expect((await serve(new Request(`https://site.test/media/${media.id}`, {
+      headers: { Cookie: `CF_Authorization=${token}`, "Cf-Access-Jwt-Assertion": "invalid" },
+    }), env, media.id)).status).toBe(404);
+
     await env.DB.prepare("UPDATE users SET active = 0 WHERE id = ?").bind(actor.id).run();
     expect((await serve(authenticated, env, media.id)).status).toBe(404);
+    expect((await serve(cookieRequest, env, media.id)).status).toBe(404);
   });
 
   it("serves published media for one year and validates width variants", async () => {
