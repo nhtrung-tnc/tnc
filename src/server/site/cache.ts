@@ -23,9 +23,24 @@ export function canonicalCacheUrl(origin: string, path: string): string {
   return `${trustedOrigin}${url.pathname}`;
 }
 
-export function isPublicCacheable(request: Request, response: Response): boolean {
+async function cacheTagForUrl(url: string): Promise<string> {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(url),
+  );
+  const hex = [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+  return `tnc-path-${hex}`;
+}
+
+export function isPublicCacheable(
+  request: Request,
+  response: Response,
+): boolean {
   if (request.method !== "GET" || request.headers.has("Cookie")) return false;
-  if (response.status !== 200 || response.headers.has("Set-Cookie")) return false;
+  if (response.status !== 200 || response.headers.has("Set-Cookie"))
+    return false;
   return !response.headers.get("Cache-Control")?.includes("private");
 }
 
@@ -40,14 +55,19 @@ export function createPurger(fetcher: PurgeFetch = fetch) {
     paths: string[],
   ): Promise<"purged" | "pending"> {
     if (!env.CLOUDFLARE_ZONE_ID || !env.CACHE_PURGE_TOKEN) return "pending";
-    let files: string[];
+    let tags: string[];
     try {
-      files = [...new Set(paths.map((path) => canonicalCacheUrl(env.SITE_ORIGIN, path)))];
+      const urls = [
+        ...new Set(
+          paths.map((path) => canonicalCacheUrl(env.SITE_ORIGIN, path)),
+        ),
+      ];
+      tags = await Promise.all(urls.map(cacheTagForUrl));
     } catch {
       return "pending";
     }
     try {
-      for (let index = 0; index < files.length; index += 30) {
+      for (let index = 0; index < tags.length; index += 100) {
         const response = await fetcher(
           `https://api.cloudflare.com/client/v4/zones/${encodeURIComponent(env.CLOUDFLARE_ZONE_ID)}/purge_cache`,
           {
@@ -56,7 +76,7 @@ export function createPurger(fetcher: PurgeFetch = fetch) {
               Authorization: `Bearer ${env.CACHE_PURGE_TOKEN}`,
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ files: files.slice(index, index + 30) }),
+            body: JSON.stringify({ tags: tags.slice(index, index + 100) }),
             signal: AbortSignal.timeout(5_000),
           },
         );
@@ -76,6 +96,7 @@ type ResponseLoader = () => Promise<Response>;
 function responseForVisitor(response: Response): Response {
   const headers = new Headers(response.headers);
   headers.delete("X-TNC-Cached-At");
+  headers.delete("Cache-Tag");
   headers.set("Cache-Control", BROWSER_CACHE_CONTROL);
   headers.set("CDN-Cache-Control", CDN_CACHE_CONTROL);
   return new Response(response.body, { status: response.status, headers });
@@ -90,10 +111,14 @@ export async function loadPublicWithCache(
 ): Promise<Response> {
   if (request.method !== "GET" || request.headers.has("Cookie")) return load();
   const publicCache = cache ?? (await caches.open("tnc-public-v1"));
-  const key = new Request(canonicalCacheUrl(env.SITE_ORIGIN, new URL(request.url).pathname));
+  const key = new Request(
+    canonicalCacheUrl(env.SITE_ORIGIN, new URL(request.url).pathname),
+  );
   const cached = await publicCache.match(key);
   const cachedAt = Number(cached?.headers.get("X-TNC-Cached-At"));
-  const ageSeconds = cachedAt ? (now - cachedAt) / 1_000 : Number.POSITIVE_INFINITY;
+  const ageSeconds = cachedAt
+    ? (now - cachedAt) / 1_000
+    : Number.POSITIVE_INFINITY;
   if (cached && ageSeconds <= FRESH_SECONDS) return responseForVisitor(cached);
 
   try {
@@ -105,6 +130,7 @@ export async function loadPublicWithCache(
       const storedHeaders = new Headers(response.headers);
       storedHeaders.set("Cache-Control", `public, max-age=${STALE_SECONDS}`);
       storedHeaders.set("X-TNC-Cached-At", String(now));
+      storedHeaders.set("Cache-Tag", await cacheTagForUrl(key.url));
       await publicCache.put(
         key,
         new Response(response.clone().body, {
@@ -115,7 +141,8 @@ export async function loadPublicWithCache(
     }
     return response;
   } catch (error) {
-    if (cached && ageSeconds <= STALE_SECONDS) return responseForVisitor(cached);
+    if (cached && ageSeconds <= STALE_SECONDS)
+      return responseForVisitor(cached);
     throw error;
   }
 }
