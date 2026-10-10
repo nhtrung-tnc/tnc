@@ -1,62 +1,57 @@
-# Cloudflare deployment evidence
+# Cloudflare production deployment evidence
 
-Status: **Task 15 test Worker deployed; production acceptance blocked by protected identity/login and purge configuration**.
+Status: **Astro production cutover completed on 2026-10-10**.
 
-Rechecked after account onboarding at 2026-10-09 13:37 UTC (20:37 Asia/Saigon), continuing from `34e16f3` on `codex/astro-cloudflare-migration`. Handoff commit remains `b76cdd0f450eb6282d3fb5fe6873439a44e42d96`; existing work was preserved. This evidence supersedes the earlier unauthenticated and account-onboarding blockers.
+This file contains sanitized evidence only. API tokens, identities, JWTs, account/zone/database identifiers and signed URLs are intentionally omitted.
 
-## Verified state
+## Production routing
 
-- `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are present; their values were not printed. `environment_status` reports current observations but readiness `unknown`, so readiness is established only for the API calls that actually succeeded.
-- Wrangler 4.149.0 `whoami` authenticated successfully. Raw identity output was kept out of published evidence.
-- Existing production D1 `tnc-cms-production` was located and reused; no duplicate database was created. Migration `0001_cms.sql` was already applied and was not reapplied. Remote schema verification found nine CMS tables, one applied migration, zero users and zero content items.
-- Resource identifiers are selected programmatically into ignored `.operations.d1.jsonc`; no production identifier is committed. This is a D1 operations config, not a deployable production Worker config.
-- `npm ci`, `npm run check` and `npm run verify` exited successfully: 16 unit tests and 87 integration tests passed; browser E2E had six passed and **seven skipped**. The skipped Admin/Editor/publishing tests require Access JWTs and an item fixture. Exit zero with skips is **not production acceptance**.
-- Operations integration tests exercise initial Admin bootstrap, backup pagination over 1,005 synthetic media objects, checksums, retention of four completed sets, failure preservation and restore verification using test adapters. These are not a real production backup or restore rehearsal.
-- Local Astro build and Wrangler deploy dry-run passed. The existing build was subsequently deployed using ignored production bindings. The first upload failed validation because additional Astro modules were omitted; adding ESModule rules and `find_additional_modules` resolved it. The successful version is recorded privately in ignored `.operations.deployment.json`.
+- `tnchandicraft.com/*` and `www.tnchandicraft.com/*` route to the `tnc-handicraft` Astro Worker.
+- The cutover uses Cloudflare Worker Routes, so the existing proxied DNS records and GitHub Pages deployment remain available as rollback infrastructure.
+- `oauth.tnchandicraft.com/*` remains routed to the legacy OAuth Worker and its modification timestamp was unchanged during the migration.
+- The public `workers.dev` hostname and preview aliases are disabled.
+- `SITE_ORIGIN` is `https://tnchandicraft.com`; apex is the canonical origin. `www` serves the same Worker and emits apex canonical metadata.
 
-## Test deployment and recovery evidence
+## Content migration
 
-- Test origin: **https://tnc-handicraft.khc-32f.workers.dev**. Production D1, MEDIA, IMAGES and ASSETS bindings and daily Cron were deployed. Preview URLs are disabled in the production config.
-- Created R2 `tnc-media-production` and separate `tnc-backup-production` after successful R2 preflight. Existing production D1 was reused.
-- Access organization preflight succeeded and confirmed `tnchandicraft.cloudflareaccess.com`. Created one application covering the three private destinations with a deny-everyone policy pending explicit identity configuration. No allow policy or Admin/Editor record was inferred from the API token owner.
-- Real production smoke: **8/8 passed** (root redirect, three homepages, sitemap, three private routes). A separate six-path check confirmed both private roots and descendants return redirects to the expected Access team domain. Public missing media returned 404. These unauthenticated checks do not establish authenticated acceptance.
-- The Node smoke command requires `NODE_USE_ENV_PROXY=1` in this managed environment. An initial direct Node fetch failed; proxy-aware smoke passed. Python's default User-Agent also received edge error 1010 on the test origin; a normal browser User-Agent produced the expected public and private responses. Those initial errors are not counted as Access denial evidence.
-- D1 was exported using official Wrangler and stored at `preacceptance/2026-10-09T13-37-44Z/database.sql` in the backup bucket. Reading it back verified identical SHA-256. The export contains 4,840 bytes.
-- A separate D1 `tnc-cms-rehearsal-20261009` was created and the export imported with official Wrangler. Remote source/restored verification matched all nine CMS tables and zero users, content items and revisions. This proves an initial D1-only restore, **not** restoration of published content or a full R2-inventory backup manifest. The rehearsal resource is retained for evidence.
+- Tracked Hugo content was schema-validated before import into D1.
+- Imported four CMS items: one homepage, two insights and one settings item.
+- Imported and published 12 localized snapshots across VI, EN and JA.
+- Production now has 12 immutable revisions and 12 published routes. The sitemap exposes nine public homepage/insight URLs and excludes settings/private routes.
+- Source-file checksums and sanitized import counts are retained in protected operator evidence.
 
-## Remaining blockers
+## Access and authenticated acceptance
 
-| API check | Observed result | Required next action |
-| --- | --- | --- |
-| D1 database list/query | Successful | Reuse the existing database; confirm actual plan and Time Travel retention before deployment. |
-| R2 bucket list | Successful after subscription activation | Resolved; two production buckets created. |
-| Access organization and applications | Successful after Zero Trust Free onboarding | Resolved; team domain confirmed and protected test application created. |
-| Access login | Test-host redirect reaches a 200 login page on the expected team domain, with an email input and OTP wording | Login-method setup is no longer a blocker. The identity-provider list is still empty, so that endpoint alone must not be used to infer whether built-in OTP works. A real OTP-authenticated session is still required for browser acceptance. |
-| Initial Admin/Editor identities | User reports publishing them, but the current attached environment at revision 15 and its configuration draft only declare the two Cloudflare variables; both identity variables remain absent from the process | Apply `ADMIN_BOOTSTRAP_EMAIL` and `EDITOR_EMAIL` as protected runtime variables to the environment attached to this chat. No bootstrap or Access allow-policy mutation was attempted without the intended identities. Do not send real identities in public chat/evidence. |
-| Dedicated cache-purge credential | `CACHE_PURGE_TOKEN` absent | Supply a protected token scoped to Cache Purge for the intended zone before authenticated publication/cache acceptance. Do not silently reuse the broader deployment token. |
-| Images stats | HTTP 403, code `5403`: account not valid or not authorized for the service | Stats authorization/entitlement remains unresolved, but IMAGES binding deployment succeeded. Do not declare account activation required for transformations without a failing transformation test. Authenticated image variant/fallback acceptance is still pending. |
+- One Cloudflare Access application protects `/admin`, `/api/admin` and `/preview` on apex, `www` and the protected test hostname.
+- The allow policy contains exactly the configured Admin and Editor identities, has no bypass/everyone selector, and uses one-hour sessions.
+- Admin acceptance passed for dashboard, user/content/media APIs, draft isolation, preview, media upload and checksum deduplication, private/public media serving, image WebP/AVIF transformations, immutable publication snapshots, restore-to-draft and publishing.
+- Editor acceptance passed for dashboard, content editing, preview and private media upload. User management, publish, revision restore and media deletion returned 403; stale writes returned 409 and cross-origin mutation returned 403.
+- OTP cookies, login forms, callback state and local privileged session files were deleted after evidence was recorded.
 
-Issuer, application AUD, zone and test origin have been selected into ignored production configuration without printing production identifiers. Configure login method, explicit allowed identities and scoped purge credential next. Never infer the CMS Admin from the token owner's identity. See [Cloudflare operations](cloudflare.md#account-onboarding-and-preflight).
+## Cache and edge acceptance
 
-## Actions not performed
+- `CACHE_PURGE_TOKEN` is stored as a Worker secret and is absent from tracked configuration.
+- Application publication returned `cacheStatus: purged`.
+- The same warmed FRA and GRU edges served the old revision before publication and the new revision on the first observation after tag purge.
+- Purging used path-specific Cache Tags. Purge Everything was not used.
+- The disposable acceptance route returned 404 from both edge locations after cleanup.
 
-No hosted Images resource or Worker secret was created. No Admin bootstrap or production content import has occurred. The test application's deny policy will require a deliberate replacement with exact approved identities before authenticated workflows can pass.
+## Public and recovery verification
 
-Real Access browser login, Admin/Editor acceptance, image variant/fallback, two-edge warm-cache publication, a complete backup/restore with R2 inventory and published snapshots, and compatible Worker rollback rehearsal remain unverified. Workers Builds repository connection and account pricing/limits/Time Travel retention also remain to be verified.
+- Production smoke passed 8/8 on both apex and `www`: root locale redirect, VI/EN/JA homepages, sitemap, and three private-root denial checks.
+- Additional checks passed for localized insight lists/articles, robots, security headers and canonical production URLs.
+- Unit tests passed 18/18 and integration tests passed 87/87; the production build completed with zero errors.
+- A pre-cutover backup was stored before content import and route changes.
+- A post-cutover D1/R2-inventory backup was restored into fresh temporary D1/R2 resources. All database rows and the media inventory matched; the temporary resources were then removed.
+- Acceptance fixtures and media were removed. Production retains four content items, 12 locales, 12 immutable revisions, 12 routes, two configured users, zero media objects and both revision-protection triggers.
 
-Following the user's OTP/Transformations activation report, production smoke was rerun and passed 8/8. Images stats remains HTTP 403/code `5403`; transformations cannot be assessed from this hosted-Images stats endpoint alone. The intended Admin/Editor identities are not available in the attached process, so D1 users and the deny-everyone Access policy remain unchanged. The environment mismatch is a configuration-delivery blocker, not a request to paste identities into chat.
+## Rollback position
 
-DNS, GitHub Pages, Hugo/Decap and the legacy OAuth Worker are unchanged. Task 16 is gated on complete test-host acceptance and explicit user approval; preparing its [cutover checklist](cutover.md) does not authorize cutover.
+- The pre-cutover Worker-route set and compatible Worker deployment are recorded in protected operator evidence.
+- Rollback removes only the two Astro Worker Routes for apex and `www`; DNS and GitHub Pages were not overwritten.
+- D1/R2 must not be deleted during routing rollback. Restore into fresh resources first if storage recovery is required.
 
-## Evidence required before marking production passing
+## Remaining operational follow-up
 
-- Sanitized account/zone confirmation and current plan limits for Workers, D1, R2, Images, Cache API and Access.
-- Ignored production config with binding/resource presence checks; no ID or identity committed.
-- D1 migration and initial Admin bootstrap timestamps.
-- Test-host Worker deployment ID and Access application coverage for `/admin`, `/api/admin`, `/preview` and aliases.
-- Public smoke counts plus authenticated Admin/Editor E2E counts, with skipped count zero for the production acceptance run.
-- Image variant/fallback result and warm-cache publish verified from two edge locations; record whether purge was `purged` or remained `pending`.
-- Completed production backup manifest and restore rehearsal into fresh temporary resources, including D1 and R2 inventory verification.
-- Compatible rollback deployment ID and UTC rehearsal result.
-
-Do not place API tokens, JWTs, personal email, account IDs, zone IDs, database IDs or bucket credentials in this file.
+- Direct DNS-record inventory remains unavailable to the deployment token (Cloudflare authentication error on the DNS Records API). Worker Routes avoided any DNS mutation.
+- Cloudflare plan limits, D1 Time Travel retention and Workers Builds branch controls should still be reviewed periodically in the dashboard.
